@@ -1,0 +1,17 @@
+{
+  "name": "Proyecto PWA",
+  "short_name": "LoboStock",
+  "description": "Ejemplo de PWA interactiva para proyecto universitario",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196F3",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
