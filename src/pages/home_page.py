@@ -1,6 +1,5 @@
 import flet as ft
 from src.components.custom_button import CustomButton
-from src.utils.helpers import generate_greeting
 
 class HomePage:
     def __init__(self, page: ft.Page):
@@ -10,7 +9,7 @@ class HomePage:
     def _build_view(self):
         # Texto principal
         self.greeting_text = ft.Text(
-            value=generate_greeting("Estudiante"),
+        
             size=20,
             text_align=ft.TextAlign.CENTER,
             weight=ft.FontWeight.BOLD

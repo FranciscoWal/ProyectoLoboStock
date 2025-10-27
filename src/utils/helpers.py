@@ -1,10 +1,15 @@
-import random
+import random  # Para simular polling futuro
 
-def generate_greeting(name: str) -> str:
-    """Genera un saludo aleatorio para el usuario."""
-    greetings = [
-        f"¡Hola, {name}! Bienvenido a tu PWA universitaria.",
-        f"¡Saludos, {name}! Este es un proyecto en Flet.",
-        f"¡Hey {name}, interactúa con esta app PWA!"
-    ]
-    return random.choice(greetings)
+MOCK_USERS = {
+    "estudiante@ut.edu": {"password": "pass123", "rol": "estudiante"},
+    "admin@ut.edu": {"password": "adminpass", "rol": "administrador"}
+}
+
+def validate_credentials(email: str, password: str, rol: str = "estudiante"):
+    user = MOCK_USERS.get(email)
+    if user and user["password"] == password and user["rol"] == rol:
+        return {"success": True, "rol": rol, "user_id": email}
+    return {"success": False, "error": "Credenciales inválidas"}
+
+def get_user_carrera(email: str):
+    return "Ingeniería en Desarrollo y Gestión de Software"  # Mock
