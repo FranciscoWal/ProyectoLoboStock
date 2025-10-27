@@ -1,77 +1,129 @@
-# src/pages/login_page.py
 import flet as ft
+# Importaciones corregidas para la estructura de 'src'
 from src.components.theme import create_ut_theme, ut_button
 from src.utils.helpers import validate_credentials, get_user_carrera
+# Importamos HomePage para la navegación
+from src.pages.home_page import HomePage
 
 class LoginPage:
     def __init__(self, page: ft.Page):
         self.page = page
-        # Configs globales aquí o en main.py
+        # Configs globales que se aplican a la página
         self.page.title = "EduStock - Iniciar Sesión"
         self.page.theme = create_ut_theme()
-        self.page.window_width = 400
-        self.page.window_height = 600
-        self.page.scroll = ft.ScrollMode.AUTO
-        self.view = self.login_view()  # Ahora retorna la UI
+        self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.page.scroll = ft.ScrollMode.ADAPTIVE
+        
+        # self.view contendrá el ft.Container retornado por login_view()
+        self.view = self.login_view()
 
-    def login_view(self):  # <- ¡Agregado self! No toma page.
-        # Logo UT (estilizado)
-        logo = ft.Image(src="assets/images/logo_ut.png", width=200, height=100, fit=ft.ImageFit.CONTAIN)
-
-        def login_click(e):
-            email = email_field.value  # Aún accesible como local
-            password = password_field.value
-            selected_rol = rol_dropdown.value
-            creds = validate_credentials(email, password, selected_rol)
-            if creds["success"]:
-                self.page.session.set("user_rol", creds["rol"])
-                self.page.session.set("user_carrera", get_user_carrera(email))
-                self.page.go("/dashboard")
-                self.page.show_snack_bar(ft.SnackBar(
-                    content=ft.Text(f"¡Bienvenido, {creds['rol']}!", color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.TEAL_600
-                ))
-            else:
-                self.page.show_snack_bar(ft.SnackBar(
-                    content=ft.Text(creds.get("error", "Error desconocido"), color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED_400
-                ))
-
-        # Campos formulario (estilizados)
-        email_field = ft.TextField(
-            label="Correo Universitario (e.g., estudiante@ut.edu)",
-            icon=ft.Icons.EMAIL,  # Usa Icons en minúscula
-            width=300,
-            border_radius=10,
-            autofocus=True,
-            on_blur=lambda e: setattr(email_field, "error_text", "Formato inválido" if "@ut.edu" not in email_field.value else None),
+    def login_view(self):
+        # Logo UT (asegúrate que la ruta 'assets/images/logo_ut.png' exista)
+        logo = ft.Image(
+            src="assets/images/logo_ut.png", 
+            width=200, 
+            height=100, 
+            fit=ft.ImageFit.CONTAIN
         )
+
+        # Campos de texto (los definimos aquí para que sean accesibles en login_click)
+        email_field = ft.TextField(
+            label="Email Institucional",
+            hint_text="ejemplo@ut.edu",
+            prefix_icon=ft.Icons.EMAIL,
+            width=300,
+            border_radius=10
+        )
+        
         password_field = ft.TextField(
             label="Contraseña",
             password=True,
             can_reveal_password=True,
-            icon=ft.Icons.LOCK,
+            prefix_icon=ft.Icons.LOCK,
             width=300,
             border_radius=10
         )
+        
         rol_dropdown = ft.Dropdown(
             label="Rol",
-            options=[ft.dropdown.Option("estudiante"), ft.dropdown.Option("administrador")],
+            options=[
+                ft.dropdown.Option("estudiante"), 
+                ft.dropdown.Option("administrador")
+            ],
             value="estudiante",
             width=300,
             border_radius=10
         )
-        login_btn = ut_button("Iniciar Sesión", login_click, ft.Icons.LOGIN)
-        recover_btn = ft.TextButton("¿Olvidaste tu contraseña?", icon=ft.Icons.HELP, 
-                                    on_click=lambda e: self.page.show_snack_bar(ft.SnackBar(content=ft.Text("Recuperación simulada vía portal UT"))))
 
-        # Layout centrado — RETORNA esto como view
+        def login_click(e):
+            email = email_field.value
+            password = password_field.value
+            selected_rol = rol_dropdown.value
+
+            # Validar credenciales (usando el helper)
+            creds = validate_credentials(email, password, selected_rol)
+            
+            if creds["success"]:
+                # 1. Guardar info en la sesión de la página
+                self.page.session.set("user_rol", creds["rol"])
+                self.page.session.set("user_id", creds["user_id"])
+                
+                # Simular obtención y guardado de carrera
+                carrera = get_user_carrera(creds["user_id"])
+                self.page.session.set("user_carrera", carrera)
+                
+                # 2. Mostrar feedback (CORREGIDO)
+                self.page.snack_bar = ft.SnackBar(
+                    content=ft.Text(f"¡Bienvenido! Iniciando como {creds['rol']}..."),
+                    bgcolor=ft.Colors.GREEN_500
+                )
+                self.page.snack_bar.open = True
+                
+                # 3. NAVEGAR: Limpiar la vista actual y cargar la Home Page
+                self.page.controls.clear() # Limpia la vista de Login
+                
+                # Instancia la nueva página
+                home_page_instance = HomePage(self.page)
+                
+                # Añade la vista de Home
+                self.page.add(home_page_instance.view)
+                
+            else:
+                # Mostrar error (CORREGIDO)
+                self.page.snack_bar = ft.SnackBar(
+                    content=ft.Text(creds.get("error", "Error desconocido")),
+                    bgcolor=ft.Colors.RED_500
+                )
+                self.page.snack_bar.open = True
+            
+            # Actualizar la página para reflejar los cambios
+            self.page.update()
+
+        # Función helper para el botón de recuperar (CORREGIDO)
+        def show_recover_snackbar(e):
+            self.page.snack_bar = ft.SnackBar(
+                content=ft.Text("Recuperación simulada vía portal UT")
+            )
+            self.page.snack_bar.open = True
+            self.page.update()
+
+        # Botones
+        login_btn = ut_button("Iniciar Sesión", login_click, ft.Icons.LOGIN)
+        
+        recover_btn = ft.TextButton(
+            "¿Olvidaste tu contraseña?", 
+            icon=ft.Icons.HELP_OUTLINE, 
+            on_click=show_recover_snackbar # <--- CORREGIDO
+        )
+
+        # Layout centrado
         return ft.Container(
             content=ft.Column(
                 [
                     logo,
                     ft.Text("EduStock - Gestión de Almacenes UT", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.TEAL_800),
-                    ft.Divider(color=ft.Colors.TEAL_200),
+                    ft.Divider(color=ft.Colors.TEAL_200, height=10),
                     email_field,
                     password_field,
                     rol_dropdown,
@@ -81,9 +133,9 @@ class LoginPage:
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=15,
-                expand=True
+                scroll=ft.ScrollMode.ADAPTIVE
             ),
             padding=20,
-            expand=True
+            border_radius=10,
+            width=380 # Ancho fijo para el contenedor de login
         )
-        # No más page.add() ni update() aquí!

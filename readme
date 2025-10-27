@@ -13,7 +13,7 @@ mi_proyecto_flet/
 │   ├── components/          # Componentes reutilizables (e.g., botones, formularios)
 │   │   └── custom_button.py
 │   ├── pages/               # Pantallas o vistas de la app
-│   │   └── home_page.py
+│   │   └── login_page.py
 │   └── utils/               # Utilidades (e.g., helpers, validaciones)
 │       └── helpers.py
 ├── build/                   # Generado automáticamente al compilar (no editar manualmente)
