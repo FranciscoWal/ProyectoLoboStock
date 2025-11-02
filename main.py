@@ -1,30 +1,12 @@
 import flet as ft
-# Importamos las páginas desde el paquete 'src'
-from src.pages.home_page import HomePage
-from src.pages.login_page import LoginPage
+from database.db_manager import init_db
+from src.pages.login_page import login_page
 
 def main(page: ft.Page):
-    page.title = "EduStock - App Almacenes UT"
-    page.theme_mode = ft.ThemeMode.LIGHT
-    
-    # Ajustes de ventana para PWA/Web
-    page.window_width = 400
-    page.window_height = 650
-    page.window_resizable = True
+    page.theme = ft.Theme(color_scheme_seed=ft.Colors.BLUE)
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    init_db()
+    login_page(page)
 
-    # Inicializa la página de login y obtiene su 'vista'
-    login_page_instance = LoginPage(page)
-    
-    # Añade la vista de login a la página
-    page.add(login_page_instance.view)
-    
-    page.update()
-
-# Ejecuta la aplicación
-ft.app(
-    target=main, 
-    assets_dir="assets",  # Apunta a la carpeta de assets
-    view=ft.WEB_BROWSER   # Optimizado para PWA/Web
-)
+ft.app(target=main)
