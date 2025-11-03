@@ -1,6 +1,7 @@
 import flet as ft
 import sqlite3
-from database.db_manager import DB_PATH
+from functools import partial
+from database.db_manager import DB_PATH, asignar_adeudo, quitar_adeudo, obtener_estado_adeudo
 
 def solicitudes_page(page: ft.Page):
     page.title = "Solicitudes — Panel de Administración"
@@ -8,9 +9,7 @@ def solicitudes_page(page: ft.Page):
     def obtener_solicitudes():
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, nombre, carrera, material, fecha, estado FROM solicitudes ORDER BY fecha DESC"
-        )
+        cursor.execute("SELECT id, nombre, expediente, carrera, material, fecha, estado FROM solicitudes ORDER BY fecha DESC")
         data = cursor.fetchall()
         conn.close()
         return data
@@ -21,31 +20,24 @@ def solicitudes_page(page: ft.Page):
         cursor.execute("DELETE FROM solicitudes WHERE id=?", (id_,))
         conn.commit()
         conn.close()
-        # Recargar la página
+        actualizar_vista()
+
+    def actualizar_vista():
         page.clean()
         solicitudes_page(page)
 
-    def mostrar_detalle(e, solicitud):
-        id_, nombre, carrera, material, fecha, estado = solicitud
+    # --- Funciones de adeudo ---
+    def asignar_adeudo_click(e, expediente, nombre):
+        asignar_adeudo(expediente)
+        page.snack_bar = ft.SnackBar(ft.Text(f"Se asignó adeudo al estudiante {nombre}"))
+        page.snack_bar.open = True
+        actualizar_vista()
 
-        dialog = ft.AlertDialog(
-            title=ft.Text(f"Detalles de solicitud #{id_}"),
-            content=ft.Column([
-                ft.Text(f"Nombre: {nombre}"),
-                ft.Text(f"Carrera: {carrera}"),
-                ft.Text(f"Material: {material}"),
-                ft.Text(f"Fecha: {fecha}"),
-                ft.Text(f"Estado: {estado}")
-            ], tight=True, spacing=5),
-            actions=[
-                ft.TextButton("Cerrar", on_click=lambda e: page.dialog.close()),
-                ft.TextButton("Eliminar", on_click=lambda e, i=id_: eliminar_solicitud(i))
-            ],
-            actions_alignment="end"
-        )
-        page.dialog = dialog
-        dialog.open = True
-        page.update()
+    def quitar_adeudo_click(e, expediente, nombre):
+        quitar_adeudo(expediente)
+        page.snack_bar = ft.SnackBar(ft.Text(f"Se quitó adeudo al estudiante {nombre}"))
+        page.snack_bar.open = True
+        actualizar_vista()
 
     def regresar(e):
         from src.pages.admin_page import admin_page
@@ -59,27 +51,50 @@ def solicitudes_page(page: ft.Page):
         lista.append(ft.Text("No hay solicitudes aún.", color=ft.Colors.GREY))
     else:
         for s in solicitudes:
-            id_, nombre, carrera, material, fecha, estado = s
+            id_, nombre, expediente, carrera, material, fecha, estado = s
+            estado_adeudo = obtener_estado_adeudo(expediente)
+            color_adeudo = ft.Colors.RED if estado_adeudo else ft.Colors.GREEN
+            texto_adeudo = "Con adeudo" if estado_adeudo else "Sin adeudo"
+
             card = ft.Card(
                 content=ft.Container(
-                    content=ft.Row([
-                        ft.Column([
+                    content=ft.Column([
+                        ft.Row([
                             ft.Text(f"{nombre} — {carrera}", size=16, weight=ft.FontWeight.BOLD),
-                            ft.Text(f"Material: {material}"),
-                            ft.Text(f"Estado: {estado}"),
-                            ft.Text(f"Fecha: {fecha}", size=12, color=ft.Colors.GREY)
-                        ], expand=True),
-                        ft.IconButton(
-                            icon=ft.Icons.CLOSE,
-                            icon_color=ft.Colors.RED,
-                            tooltip="Eliminar solicitud",
-                            on_click=lambda e, i=id_: eliminar_solicitud(i)
-                        )
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    padding=15,
-                    on_click=lambda e, solicitud=s: mostrar_detalle(e, solicitud)
+                            ft.Text(f"Expediente: {expediente}", size=12, color=ft.Colors.GREY)
+                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+
+                        ft.Text(f"Material: {material}"),
+                        ft.Text(f"Estado: {estado}"),
+                        ft.Text(f"Fecha: {fecha}", size=12, color=ft.Colors.GREY),
+                        ft.Text(f"Adeudo: {texto_adeudo}", color=color_adeudo),
+
+                        ft.Row([
+                            ft.ElevatedButton(
+                                text="Asignar adeudo",
+                                icon=ft.Icons.BLOCK,
+                                bgcolor=ft.Colors.RED,
+                                color=ft.Colors.WHITE,
+                                on_click=partial(asignar_adeudo_click, expediente=expediente, nombre=nombre)
+                            ),
+                            ft.ElevatedButton(
+                                text="Quitar adeudo",
+                                icon=ft.Icons.CHECK,
+                                bgcolor=ft.Colors.GREEN,
+                                color=ft.Colors.WHITE,
+                                on_click=partial(quitar_adeudo_click, expediente=expediente, nombre=nombre)
+                            ),
+                            ft.IconButton(
+                                icon=ft.Icons.DELETE,
+                                icon_color=ft.Colors.RED,
+                                tooltip="Eliminar solicitud",
+                                on_click=partial(lambda e, id=id_: eliminar_solicitud(id))
+                            )
+                        ], alignment=ft.MainAxisAlignment.SPACE_AROUND)
+                    ]),
+                    padding=15
                 ),
-                width=500
+                width=550
             )
             lista.append(card)
 
