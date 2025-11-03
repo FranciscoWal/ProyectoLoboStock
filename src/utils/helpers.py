@@ -29,7 +29,10 @@ def crear_tabla_usuarios(datos_usuarios: list) -> ft.DataTable:
                 ft.DataCell(ft.Text(usuario.get("username", ""))),
                 ft.DataCell(ft.Text(usuario.get("rol", ""))),
                 ft.DataCell(ft.Text(usuario.get("expediente", ""))),
-                ft.DataCell(ft.Text(estado_adeudo, color=color_adeudo, weight=ft.FontWeight.BOLD)),
+                ft.DataCell(ft.Container(
+                    content=ft.Text(estado_adeudo, 
+                                    weight=ft.FontWeight.BOLD),bgcolor=color_adeudo,padding=5,border_radius=5)
+                            )
             ],
         )
         filas.append(fila)
