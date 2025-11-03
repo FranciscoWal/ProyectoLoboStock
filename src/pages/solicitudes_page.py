@@ -102,6 +102,6 @@ def solicitudes_page(page: ft.Page):
         ft.Column([
             ft.Text("Solicitudes recibidas", size=25, weight=ft.FontWeight.BOLD),
             ft.Column(lista, spacing=10, scroll="auto"),
-            ft.OutlinedButton("Regresar", on_click=regresar)
+            ft.OutlinedButton("Regresar", on_click=regresar, icon=ft.Icons.ARROW_BACK),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=20)
     )
