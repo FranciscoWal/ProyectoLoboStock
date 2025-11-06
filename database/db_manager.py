@@ -9,13 +9,15 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS solicitudes (
+   CREATE TABLE IF NOT EXISTS solicitudes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT,
         expediente TEXT,
         carrera TEXT,
         material TEXT,
-        tiempo_uso INTEGER,  -- tiempo en horas
+        laboratorio TEXT,
+        hora_inicio TEXT,
+        hora_entrega TEXT,
         fecha TEXT DEFAULT CURRENT_TIMESTAMP,
         estado TEXT DEFAULT 'Pendiente'
     );
@@ -33,7 +35,7 @@ def init_db():
     """)
 
     
-    # Insertar usuarios por defecto
+    #  por defecto
     insertar_usuario_default(cursor, "diego", "123", "estudiante", "2022143039", 0)
     insertar_usuario_default(cursor, "dani", "123", "admin", "admin001", 0)
     
@@ -49,11 +51,13 @@ def insertar_usuario_default(cursor, username, password, rol, expediente, adeudo
     except sqlite3.IntegrityError:
         print(f"Usuario {username} ya existe")
 
-def insertar_solicitud(nombre, expediente, carrera, material, tiempo_uso=None):
+def insertar_solicitud(nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO solicitudes (nombre, expediente, carrera, material, tiempo_uso) VALUES (?, ?, ?, ?, ?)",
-                   (nombre, expediente, carrera, material, tiempo_uso))
+    cursor.execute("""
+        INSERT INTO solicitudes (nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega))
     conn.commit()
     conn.close()
 
@@ -87,7 +91,7 @@ def verificar_adeudo(expediente):
     result = cursor.fetchone()
     conn.close()
     if result:
-        return result[0] == 1  # True si tiene adeudo
+        return result[0] == 1  
     return False
 
 def asignar_adeudo(expediente):
