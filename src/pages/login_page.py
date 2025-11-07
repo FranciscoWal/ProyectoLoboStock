@@ -1,141 +1,252 @@
+import datetime
 import flet as ft
-# Importaciones corregidas para la estructura de 'src'
-from src.components.theme import create_ut_theme, ut_button
-from src.utils.helpers import validate_credentials, get_user_carrera
-# Importamos HomePage para la navegación
-from src.pages.home_page import HomePage
+from src.pages.home_page import home_page
+from src.pages.admin_page import admin_page
+from database.db_manager import validar_usuario
 
-class LoginPage:
-    def __init__(self, page: ft.Page):
-        self.page = page
-        # Configs globales que se aplican a la página
-        self.page.title = "EduStock - Iniciar Sesión"
-        self.page.theme = create_ut_theme()
-        self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
-        self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-        self.page.scroll = ft.ScrollMode.ADAPTIVE
-        
-        # self.view contendrá el ft.Container retornado por login_view()
-        self.view = self.login_view()
 
-    def login_view(self):
-        # Logo UT (asegúrate que la ruta 'assets/images/logo_ut.png' exista)
-        logo = ft.Image(
-            src="assets/images/logo_ut.png", 
-            width=200, 
-            height=100, 
-            fit=ft.ImageFit.CONTAIN
-        )
+def login_page(page: ft.Page):
+    # ------------------ Configuración global (sin tocar la lógica) ------------------
+    page.title = "Login Sistema de Solicitud de Materiales"
+    page.padding = 0
+    page.spacing = 0
+    page.scroll = ft.ScrollMode.ADAPTIVE
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
-        # Campos de texto (los definimos aquí para que sean accesibles en login_click)
-        email_field = ft.TextField(
-            label="Email Institucional",
-            hint_text="ejemplo@ut.edu",
-            prefix_icon=ft.Icons.EMAIL,
-            width=300,
-            border_radius=10
-        )
-        
-        password_field = ft.TextField(
-            label="Contraseña",
-            password=True,
-            can_reveal_password=True,
-            prefix_icon=ft.Icons.LOCK,
-            width=300,
-            border_radius=10
-        )
-        
-        rol_dropdown = ft.Dropdown(
-            label="Rol",
-            options=[
-                ft.dropdown.Option("estudiante"), 
-                ft.dropdown.Option("administrador")
-            ],
-            value="estudiante",
-            width=300,
-            border_radius=10
-        )
+    # Fuente y tema
+    page.fonts = page.fonts or {}
+    page.fonts.update({"ConcertOne": "fonts/ConcertOne-Regular.ttf"})
+    page.theme = page.theme or ft.Theme()
+    page.theme.font_family = "ConcertOne"
 
-        def login_click(e):
-            email = email_field.value
-            password = password_field.value
-            selected_rol = rol_dropdown.value
+    # ----------------------------- Paleta -----------------------------------
+    UT_GREEN = "#0AA67A"
+    BG_DARK_1 = "#0E1224"
+    BG_DARK_2 = "#1A2038"
+    CARD_DARK = "#1F2541"
+    FIELD_BG = "#2A3052"
+    FIELD_TXT = "#E7E9F2"
+    FIELD_HINT = "#A8AEC7"
+    MUTED = "#8E94B8"
 
-            # Validar credenciales (usando el helper)
-            creds = validate_credentials(email, password, selected_rol)
-            
-            if creds["success"]:
-                # 1. Guardar info en la sesión de la página
-                self.page.session.set("user_rol", creds["rol"])
-                self.page.session.set("user_id", creds["user_id"])
-                
-                # Simular obtención y guardado de carrera
-                carrera = get_user_carrera(creds["user_id"])
-                self.page.session.set("user_carrera", carrera)
-                
-                # 2. Mostrar feedback (CORREGIDO)
-                self.page.snack_bar = ft.SnackBar(
-                    content=ft.Text(f"¡Bienvenido! Iniciando como {creds['rol']}..."),
-                    bgcolor=ft.Colors.GREEN_500
-                )
-                self.page.snack_bar.open = True
-                
-                # 3. NAVEGAR: Limpiar la vista actual y cargar la Home Page
-                self.page.controls.clear() # Limpia la vista de Login
-                
-                # Instancia la nueva página
-                home_page_instance = HomePage(self.page)
-                
-                # Añade la vista de Home
-                self.page.add(home_page_instance.view)
-                
-            else:
-                # Mostrar error (CORREGIDO)
-                self.page.snack_bar = ft.SnackBar(
-                    content=ft.Text(creds.get("error", "Error desconocido")),
-                    bgcolor=ft.Colors.RED_500
-                )
-                self.page.snack_bar.open = True
-            
-            # Actualizar la página para reflejar los cambios
-            self.page.update()
+    txt = ft.TextStyle(color=FIELD_TXT, size=14, font_family="ConcertOne")
+    hint = ft.TextStyle(color=FIELD_HINT, size=13, font_family="ConcertOne")
 
-        # Función helper para el botón de recuperar (CORREGIDO)
-        def show_recover_snackbar(e):
-            self.page.snack_bar = ft.SnackBar(
-                content=ft.Text("Recuperación simulada vía portal UT")
-            )
-            self.page.snack_bar.open = True
-            self.page.update()
+    # --------------------------- Controles UI --------------------------------
+    username = ft.TextField(
+        hint_text="Usuario",
+        prefix_icon=ft.Icons.PERSON_OUTLINE,
+        width=360,
+        bgcolor=FIELD_BG,
+        color=FIELD_TXT,
+        text_style=txt,
+        hint_style=hint,
+        border_radius=14,
+        border_color="transparent",
+        focused_border_color=UT_GREEN,
+    )
 
-        # Botones
-        login_btn = ut_button("Iniciar Sesión", login_click, ft.Icons.LOGIN)
-        
-        recover_btn = ft.TextButton(
-            "¿Olvidaste tu contraseña?", 
-            icon=ft.Icons.HELP_OUTLINE, 
-            on_click=show_recover_snackbar # <--- CORREGIDO
-        )
+    password = ft.TextField(
+        hint_text="Contraseña",
+        password=True,
+        can_reveal_password=True,
+        prefix_icon=ft.Icons.LOCK_OUTLINED,
+        width=360,
+        bgcolor=FIELD_BG,
+        color=FIELD_TXT,
+        text_style=txt,
+        hint_style=hint,
+        border_radius=14,
+        border_color="transparent",
+        focused_border_color=UT_GREEN,
+    )
 
-        # Layout centrado
-        return ft.Container(
-            content=ft.Column(
-                [
-                    logo,
-                    ft.Text("EduStock - Gestión de Almacenes UT", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.TEAL_800),
-                    ft.Divider(color=ft.Colors.TEAL_200, height=10),
-                    email_field,
-                    password_field,
-                    rol_dropdown,
-                    login_btn,
-                    recover_btn
-                ],
+    rol_dropdown = ft.Dropdown(
+        options=[ft.dropdown.Option("estudiante"), ft.dropdown.Option("admin")],
+        value="estudiante",
+        width=360,
+        bgcolor=FIELD_BG,
+        color=FIELD_TXT,
+        hint_style=hint,
+        border_radius=14,
+        border_color="transparent",
+        focused_border_color=UT_GREEN,
+    )
+
+    mensaje = ft.Text("", color=ft.Colors.RED, text_align=ft.TextAlign.CENTER)
+
+    # ---------------------- Botón con loader (solo UI) -----------------------
+    loading = {"value": False}
+
+    def set_loading(v: bool):
+        loading["value"] = v
+        iniciar_btn.disabled = v
+        iniciar_btn.content = (
+            ft.Row(
+                [ft.ProgressRing(width=16, height=16, stroke_width=2),
+                 ft.Text(" Validando...", color=ft.Colors.WHITE)],
+                spacing=8,
                 alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=15,
-                scroll=ft.ScrollMode.ADAPTIVE
-            ),
-            padding=20,
-            border_radius=10,
-            width=380 # Ancho fijo para el contenedor de login
+            )
+            if v else ft.Row(
+                [ft.Icon(ft.Icons.LOGIN), ft.Text(" Iniciar sesión")],
+                spacing=8,
+                alignment=ft.MainAxisAlignment.CENTER,
+            )
         )
+        page.update()
+
+    # ----------------------------- Lógica ORIGINAL ---------------------------
+    def iniciar_sesion(e):
+        username.error_text = None if username.value.strip() else "Ingresa tu usuario"
+        password.error_text = None if password.value.strip() else "Ingresa tu contraseña"
+        page.update()
+        if username.error_text or password.error_text:
+            return
+
+        set_loading(True)
+        try:
+            rol = validar_usuario(username.value, password.value)  # NO CAMBIADO
+            if rol == "estudiante":
+                page.clean()
+                home_page(page)    # NO CAMBIADO
+            elif rol == "admin":
+                page.clean()
+                admin_page(page)   # NO CAMBIADO
+            else:
+                mensaje.value = "Usuario o contraseña incorrectos"
+                page.update()
+        finally:
+            set_loading(False)
+
+    iniciar_btn = ft.ElevatedButton(
+        content=ft.Row([ft.Icon(ft.Icons.LOGIN), ft.Text(" Iniciar sesión")],
+                       spacing=8, alignment=ft.MainAxisAlignment.CENTER),
+        on_click=iniciar_sesion,
+        width=360,
+        style=ft.ButtonStyle(
+            bgcolor=ft.Colors.with_opacity(1.0, UT_GREEN),
+            color=ft.Colors.WHITE,
+            shape=ft.RoundedRectangleBorder(radius=14),
+            elevation=6
+        ),
+    )
+
+    # ----------------------------- Header ------------------------------------
+    h = datetime.datetime.now().hour
+    saludo = "Buenos días" if 5 <= h < 12 else ("Buenas tardes" if h < 19 else "Buenas noches")
+
+    logo = ft.Image(src="images/logo_ut.png", width=160, height=60, fit=ft.ImageFit.CONTAIN)
+
+    titulo = ft.Text(
+        "LOBO STOCK",
+        size=28,
+        weight=ft.FontWeight.BOLD,
+        color=UT_GREEN,
+        text_align=ft.TextAlign.CENTER,
+    )
+
+    header_block = ft.Column(
+        [
+            ft.Row([logo], alignment=ft.MainAxisAlignment.CENTER),
+            titulo,
+            ft.Text(saludo, size=22, weight=ft.FontWeight.W_600, color=FIELD_TXT),
+            ft.Text("Ingresa tus credenciales para continuar",
+                    size=11, color=MUTED, text_align=ft.TextAlign.CENTER),
+            ft.Text("Login", size=16, weight=ft.FontWeight.BOLD, color=FIELD_TXT),
+        ],
+        spacing=4,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    )
+
+    recover_btn = ft.TextButton(
+        "¿Olvidaste tu contraseña?",
+        style=ft.ButtonStyle(color=ft.Colors.GREY_400),
+    )
+
+    # --------------------- Layout interno balanceado -------------------------
+    # Usamos "espaciadores" expandibles para distribuir verticalmente.
+    top_spacer = ft.Container(expand=1)      # ocupa espacio libre arriba del form
+    middle_spacer = ft.Container(expand=1)   # entre el form y acciones
+    bottom_spacer = ft.Container(expand=1)   # bajo las acciones
+
+    form_block = ft.Column(
+        [username, password, rol_dropdown, recover_btn],
+        spacing=10,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    )
+
+    actions_block = ft.Column(
+        [iniciar_btn, mensaje],
+        spacing=10,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    )
+
+    # ----------------------------- Card --------------------------------------
+    # Mantenemos ancho/padding y dejamos que el contenido se distribuya con spacers.
+    card = ft.Container(
+        width=520,
+        padding=ft.padding.symmetric(horizontal=28, vertical=24),
+        bgcolor=CARD_DARK,
+        border_radius=22,
+        shadow=ft.BoxShadow(blur_radius=28, color="#00000055"),
+        content=ft.Column(
+            controls=[
+                header_block,
+                top_spacer,        # <- reparte aire por encima del formulario
+                form_block,
+                middle_spacer,     # <- asegura que no se concentre todo abajo
+                actions_block,
+                bottom_spacer,     # <- deja un margen inferior proporcional
+            ],
+            expand=True,                           # <- para usar todo el alto del card
+            alignment=ft.MainAxisAlignment.START,  # distribución con los spacers
+            spacing=0,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+    )
+
+    # ---------------------- Fondo full-screen + círculos ----------------------
+    circles = [
+        ft.Container(left=-70,  top=-60, width=280, height=280, border_radius=9999,
+                     bgcolor=ft.Colors.with_opacity(0.12, UT_GREEN)),
+        ft.Container(right=-60, top=40,  width=220, height=220, border_radius=9999,
+                     bgcolor=ft.Colors.with_opacity(0.18, UT_GREEN)),
+        ft.Container(left=120, bottom=-80, width=260, height=260, border_radius=9999,
+                     bgcolor=ft.Colors.with_opacity(0.18, UT_GREEN)),
+        ft.Container(right=140, bottom=-60, width=200, height=200, border_radius=9999,
+                     bgcolor=ft.Colors.with_opacity(0.12, UT_GREEN)),
+    ]
+
+    background = ft.Container(
+        width=page.width or 1200,
+        height=page.height or 800,
+        gradient=ft.LinearGradient(
+            begin=ft.Alignment(-1, -1), end=ft.Alignment(1, 1),
+            colors=[BG_DARK_1, BG_DARK_2],
+        ),
+        content=ft.Stack(
+            controls=[
+                *circles,
+                ft.Container(
+                    alignment=ft.alignment.center,
+                    padding=ft.padding.symmetric(horizontal=24, vertical=24),
+                    content=card,
+                ),
+            ],
+            expand=True,
+        ),
+    )
+
+    root = ft.Container(expand=True, alignment=ft.alignment.center, content=background)
+    page.add(root)
+
+    # Mantener el fondo al tamaño del viewport en cada resize
+    def _resize(_=None):
+        background.width = page.width
+        background.height = page.height
+        page.update()
+
+    page.on_resize = _resize
+    _resize()

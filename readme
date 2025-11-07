@@ -1,3 +1,70 @@
+# 🧾 Etapa 3: Liberación y Monitoreo del Proyecto  
+**Materia:** DevOps  
+**Alumno:** Alfredo Enríquez  
+**Equipo:** Proyecto LoboStock  
+**Repositorio:** [GitHub – ProyectoLoboStock](https://github.com/FranciscoWal/ProyectoLoboStock.git)  
+**Versión desplegada:** [LoboStock en Render](https://ut-lgep.onrender.com/)  
+**Fecha:** Noviembre 2025  
+
+---
+
+## 🚀 1. Descripción general del proyecto
+
+**LoboStock** es una Aplicación Web Progresiva (PWA) desarrollada en **Flet (Python)** y **Supabase**, cuyo objetivo es optimizar la gestión de inventarios en los almacenes de la **UTSJR**.  
+El sistema permite **registrar, visualizar y actualizar productos**, controlando el flujo de materiales de manera eficiente y accesible desde cualquier dispositivo.
+
+---
+
+## 🧩 2. Verificación del código y funcionalidad
+
+Antes de la liberación, se realizaron las siguientes acciones:
+
+- Revisión del repositorio para asegurar que **todas las rutas y módulos estén actualizados**.  
+- Ejecución local del sistema para validar el correcto funcionamiento del backend y la interfaz PWA.  
+- Pruebas de conexión con **Supabase** (autenticación y operaciones CRUD).  
+- Limpieza de código y actualización del archivo `requirements.txt` para una correcta instalación en Render.
+
+📂 **Commit final:**  
+> `feat: versión final estable para despliegue en Render`
+
+---
+
+## 🧭 3. Simulación de liberación / Despliegue
+
+El proyecto fue **desplegado exitosamente en Render**, un servicio gratuito de hosting que soporta aplicaciones Python con conexión a bases de datos externas.
+
+🔗 **Versión final en línea:**  
+👉 [https://ut-lgep.onrender.com/](https://ut-lgep.onrender.com/)
+
+📸 **Evidencia visual del despliegue:**  
+1. Captura del panel de Render mostrando el estado “Live”.  
+2. Captura de la página web funcional en navegador (inicio y vista de inventario).  
+3. Captura de consola del log de Render indicando el arranque correcto del servidor.
+
+> Si el entorno no está disponible temporalmente, se puede entregar la carpeta `/version-final` con el código ejecutable y dependencias configuradas para entorno local.
+
+---
+
+## 🔍 4. Monitoreo básico post-liberación
+
+Una vez liberado el sistema, se aplicaron **verificaciones de disponibilidad y rendimiento básico**:
+
+### ✅ Verificaciones funcionales
+- Revisión visual de la interfaz desde **navegador y móvil**.  
+- Prueba de inicio de sesión y navegación entre vistas principales.  
+- Comprobación de los mensajes de consola para detectar errores en frontend o backend.  
+
+### 🧠 Pruebas de disponibilidad
+- Uso de **Pingdom Tools** y **UptimeRobot** para comprobar el estado HTTP 200 del sitio (`ut-lgep.onrender.com`).  
+- Monitoreo manual de los tiempos de respuesta (< 1.5 s promedio).  
+
+### ⚙️ Ejemplo de monitoreo con consola:
+```bash
+$ curl -I https://ut-lgep.onrender.com/
+HTTP/2 200
+date: Fri, 7 Nov 2025 18:00:00 GMT
+content-type: text/html; charset=utf-8
+
 mi_proyecto_flet/
 ├── main.py                  # Archivo principal de la app Flet (función main y ft.app())
 ├── pyproject.toml           # Configuración del proyecto (dependencias, build, etc.)
