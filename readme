@@ -64,3 +64,25 @@ $ curl -I https://ut-lgep.onrender.com/
 HTTP/2 200
 date: Fri, 7 Nov 2025 18:00:00 GMT
 content-type: text/html; charset=utf-8
+
+mi_proyecto_flet/
+├── main.py                  # Archivo principal de la app Flet (función main y ft.app())
+├── pyproject.toml           # Configuración del proyecto (dependencias, build, etc.)
+├── assets/                  # Carpeta obligatoria para recursos estáticos
+│   ├── manifest.json        # Configuración PWA (nombre, descripción, colores, íconos)
+│   ├── favicon.png          # Ícono favicon (mínimo 32x32 px)
+│   ├── icons/               # Subcarpeta para íconos PWA y app
+│   │   └── icon-192.png     # Ejemplos de íconos en diferentes tamaños (192x192, 512x512)
+│   ├── images/              # Imágenes usadas en la UI
+│   │   └── mi-imagen.png
+│   └── loading-animation.png # Logo personalizado para animación de carga
+├── src/                     # Código fuente modular (opcional, para proyectos grandes)
+│   ├── components/          # Componentes reutilizables (e.g., botones, formularios)
+│   │   └── custom_button.py
+│   ├── pages/               # Pantallas o vistas de la app
+│   │   └── login_page.py
+│   └── utils/               # Utilidades (e.g., helpers, validaciones)
+│       └── helpers.py
+├── build/                   # Generado automáticamente al compilar (no editar manualmente)
+│   └── web/                 # Archivos para deployment web/PWA (index.html, JS, etc.)
+└── requirements.txt         # Dependencias (opcional si usas pyproject.toml)
