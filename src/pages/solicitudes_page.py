@@ -126,3 +126,4 @@ def solicitudes_page(page: ft.Page):
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         spacing=20)
     )
+    

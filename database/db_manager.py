@@ -34,7 +34,15 @@ def init_db():
     );
     """)
 
-    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS inventario (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre_material TEXT UNIQUE,
+        cantidad_total INTEGER DEFAULT 0,
+        cantidad_en_uso INTEGER DEFAULT 0,
+        cantidad_disponible INTEGER DEFAULT 0
+    );
+    """)
     #  por defecto
     insertar_usuario_default(cursor, "diego", "123", "estudiante", "2022143039", 0)
     insertar_usuario_default(cursor, "dani", "123", "admin", "admin001", 0)
@@ -117,3 +125,28 @@ def obtener_estado_adeudo(expediente):
     return result[0] if result else 0
 
 
+def buscar_materiales(termino):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT nombre_material 
+        FROM inventario 
+        WHERE nombre_material LIKE ?
+        ORDER BY nombre_material ASC
+    """, (f"%{termino}%",))
+    resultados = [r[0] for r in cursor.fetchall()]
+    conn.close()
+    return resultados
+
+
+def restar_material(nombre_material, cantidad=1):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE inventario
+        SET cantidad_en_uso = cantidad_en_uso + ?,
+            cantidad_disponible = cantidad_total - (cantidad_en_uso + ?)
+        WHERE nombre_material = ?
+    """, (cantidad, cantidad, nombre_material))
+    conn.commit()
+    conn.close()
