@@ -7,7 +7,7 @@ def inventario_page(page: ft.Page):
     page.title = "Inventario — Panel de Administración"
     
    
-    # Funciones BD
+  
    
     def obtener_inventario():
         conn = sqlite3.connect(DB_PATH)
@@ -60,7 +60,7 @@ def inventario_page(page: ft.Page):
     def mostrar_formulario(material=None):
         es_edicion = material is not None
         
-        # Campos del formulario
+
         nombre_field = ft.TextField(
             label="Nombre del material*",
             width=400,
@@ -94,7 +94,7 @@ def inventario_page(page: ft.Page):
                     mostrar_mensaje("En uso no puede ser mayor que total")
                     return
 
-                # Guardar
+               
                 if es_edicion:
                     guardar_material(nombre_field.value.strip(), total, en_uso, material[0])
                     mostrar_mensaje("Material actualizado", False)
@@ -173,11 +173,11 @@ def inventario_page(page: ft.Page):
         admin_page(page)
 
    
-    # Renderizar TABLA
+   
 
     inventario = obtener_inventario()
     
-    # Crear filas de la tabla
+    
     filas_tabla = []
     
     if not inventario:
@@ -208,7 +208,7 @@ def inventario_page(page: ft.Page):
             
             filas_tabla.append(
                 ft.DataRow(
-                    color=ft.Colors.WHITE,  # Fondo blanco para las filas de datos
+                    color=ft.Colors.WHITE,  
                     cells=[
                         ft.DataCell(ft.Text(str(id_), color=ft.Colors.BLACK)),
                         ft.DataCell(ft.Text(nombre, color=ft.Colors.BLACK)),
@@ -250,9 +250,9 @@ def inventario_page(page: ft.Page):
         border_radius=10,
         horizontal_margin=10,
         column_spacing=20,
-        heading_row_color=ft.Colors.BLUE,  # Fondo AZUL para el encabezado
+        heading_row_color=ft.Colors.BLUE,  
         heading_row_height=50,
-        data_row_color=ft.Colors.WHITE,    # Fondo BLANCO para las filas de datos
+        data_row_color=ft.Colors.WHITE,    
         data_row_max_height=60,
     )
 

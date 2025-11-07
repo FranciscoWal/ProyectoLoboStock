@@ -1,12 +1,12 @@
 import flet as ft
 import sqlite3
 from functools import partial
-from database.db_manager import DB_PATH, asignar_adeudo, quitar_adeudo, obtener_estado_adeudo
+from database.db_manager import DB_PATH, asignar_adeudo, quitar_adeudo, obtener_estado_adeudo, devolver_material 
 
 def solicitudes_page(page: ft.Page):
     page.title = "Solicitudes — Panel de Administración"
 
-    # Función para obtener solicitudes 
+  
     def obtener_solicitudes():
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -20,7 +20,23 @@ def solicitudes_page(page: ft.Page):
         data = cursor.fetchall()
         conn.close()
         return data
+    
+    def marcar_devuelto(e, id_solicitud, nombre_material, nombre):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
 
+       
+        cursor.execute("UPDATE solicitudes SET estado = 'Devuelto' WHERE id=?", (id_solicitud,))
+        conn.commit()
+        conn.close()
+
+      
+        devolver_material(nombre_material)
+
+     
+        page.snack_bar = ft.SnackBar(ft.Text(f"Material '{nombre_material}' devuelto por {nombre}."))
+        page.snack_bar.open = True
+        actualizar_vista()
   
     def eliminar_solicitud(id_):
         conn = sqlite3.connect(DB_PATH)
@@ -30,7 +46,7 @@ def solicitudes_page(page: ft.Page):
         conn.close()
         actualizar_vista()
 
-    # Recargar la vista 
+   
     def actualizar_vista():
         page.clean()
         solicitudes_page(page)
@@ -102,6 +118,14 @@ def solicitudes_page(page: ft.Page):
                                 color=ft.Colors.WHITE,
                                 on_click=partial(quitar_adeudo_click, expediente=expediente, nombre=nombre)
                             ),
+                             ft.ElevatedButton(
+                                text="Devuelto",
+                                icon=ft.Icons.REPLY,
+                                bgcolor=ft.Colors.BLUE,
+                                color=ft.Colors.WHITE,
+                                on_click=partial(marcar_devuelto, id_solicitud=id_, nombre_material=material, nombre=nombre)
+                            ),
+
                             ft.IconButton(
                                 icon=ft.Icons.DELETE,
                                 icon_color=ft.Colors.RED,

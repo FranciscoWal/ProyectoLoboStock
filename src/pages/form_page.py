@@ -5,7 +5,7 @@ from database.db_manager import insertar_solicitud, verificar_adeudo, buscar_mat
 def formulario(page, career):
     page.title = "Solicitud de Material"
 
-    # Campos principales
+    
     nombre = ft.TextField(label="Nombre completo", width=300)
     expediente = ft.TextField(label="Número de expediente", width=300)
     carrera = ft.TextField(label="Carrera", width=300)
@@ -35,7 +35,7 @@ def formulario(page, career):
 
     material_input.on_change = actualizar_sugerencias
 
-    # TimePickers
+  
     hora_inicio_picker = ft.TimePicker()
     hora_entrega_picker = ft.TimePicker()
     hora_inicio_field = ft.TextField(label="Hora de inicio", read_only=True, width=300)

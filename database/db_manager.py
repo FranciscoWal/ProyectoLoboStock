@@ -2,7 +2,7 @@
 import sqlite3
 from pathlib import Path
 
-# base de datos en proyect
+# base de datos 
 DB_PATH = Path(__file__).parent.parent / "solicitudes.db"
 
 def init_db():
@@ -146,6 +146,19 @@ def restar_material(nombre_material, cantidad=1):
         UPDATE inventario
         SET cantidad_en_uso = cantidad_en_uso + ?,
             cantidad_disponible = cantidad_total - (cantidad_en_uso + ?)
+        WHERE nombre_material = ?
+    """, (cantidad, cantidad, nombre_material))
+    conn.commit()
+    conn.close()
+
+
+def devolver_material(nombre_material, cantidad=1):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE inventario
+        SET cantidad_en_uso = MAX(cantidad_en_uso - ?, 0),
+            cantidad_disponible = MIN(cantidad_total, cantidad_disponible + ?)
         WHERE nombre_material = ?
     """, (cantidad, cantidad, nombre_material))
     conn.commit()
