@@ -1,5 +1,6 @@
 import flet as ft
 from src.pages.solicitudes_page import solicitudes_page
+from src.pages.inventario_page import inventario_page
 
 def admin_page(page: ft.Page):
     page.title = "Panel de Administración"
@@ -8,9 +9,14 @@ def admin_page(page: ft.Page):
         page.clean()
         solicitudes_page(page)
 
+    def abrir_inventario(e):
+        page.clean()
+        inventario_page(page)
+
     # para luego agregar mas 
     secciones = [
         ("Solicitudes", ft.Icons.DESCRIPTION, abrir_solicitudes),
+        ("Inventario", ft.Icons.COMPUTER, abrir_inventario) 
        
     ]
 

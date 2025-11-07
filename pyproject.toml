@@ -7,7 +7,7 @@ name = "mi_proyecto_flet"
 version = "0.1.0"
 description = "Proyecto universitario PWA en Flet"
 dependencies = [
-    "flet >= 0.24.0",
+    "flet >= 0.28.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -16,10 +16,13 @@ packages = ["src"]
 [tool.flet]
 web-renderer = "html"  # O "canvaskit" para mejor rendimiento
 
+[tool.poetry]
+package-mode = false
+
 [tool.poetry.scripts]
 run = "main:main"
 
 [tool.poetry.dependencies]
-python = "^3.12"
-flet = "^0.24.0"  # Para UI responsive y PWA
+python = ">=3.9,<4.0"
+flet = "^0.28.0"  # Para UI responsive y PWA
 requests = "^2.31.0"  # Para mocks de API (simular DB)
