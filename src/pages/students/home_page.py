@@ -1,5 +1,5 @@
 import flet as ft
-from src.pages.form_page import formulario
+from .form_page import formulario
 
 
 def home_page(page: ft.Page):

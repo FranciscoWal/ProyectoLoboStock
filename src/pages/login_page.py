@@ -1,7 +1,7 @@
 import datetime
 import flet as ft
-from src.pages.home_page import home_page
-from src.pages.admin_page import admin_page
+from src.pages.students.home_page import home_page
+from src.pages.administration.admin_page import admin_page
 from database.db_manager import validar_usuario
 
 

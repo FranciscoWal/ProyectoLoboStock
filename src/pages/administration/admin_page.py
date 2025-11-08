@@ -1,6 +1,6 @@
 import flet as ft
-from src.pages.solicitudes_page import solicitudes_page
-from src.pages.inventario_page import inventario_page
+from .solicitudes_page import solicitudes_page
+from .inventario_page import inventario_page
 
 def admin_page(page: ft.Page):
     page.title = "Panel de Administración"

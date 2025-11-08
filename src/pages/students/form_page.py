@@ -108,7 +108,7 @@ def formulario(page, career):
 
     
     def regresar(e):
-        from src.pages.home_page import home_page
+        from pages.students.home_page import home_page
         page.clean()
         home_page(page)
 

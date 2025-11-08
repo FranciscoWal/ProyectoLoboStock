@@ -66,7 +66,7 @@ def solicitudes_page(page: ft.Page):
 
     
     def regresar(e):
-        from src.pages.admin_page import admin_page
+        from src.pages.administration.admin_page import admin_page
         page.clean()
         admin_page(page)
 
