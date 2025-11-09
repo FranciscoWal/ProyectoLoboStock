@@ -141,11 +141,11 @@ def validar_usuario(username, password, rol):
             return None
 
     elif rol == "estudiante":
-        cursor.execute("SELECT expediente, carrera FROM usuarios WHERE username=? AND password=?", (username, password))
+        cursor.execute("SELECT username, expediente, carrera FROM usuarios WHERE username=? AND password=?", (username, password))
         user = cursor.fetchone()
         conn.close()
         if user:
-            return {"rol": "usuario", "expediente": user[0], "carrera": user[1]}
+            return {"rol": "usuario", "username": user[0], "expediente": user[1],"carrera": user[2]}
         else:
             return None
 

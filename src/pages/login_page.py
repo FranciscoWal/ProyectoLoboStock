@@ -114,7 +114,8 @@ def login_page(page: ft.Page):
                 if usuario["rol"] == "usuario":
                     page.clean()
                     # puedes pasarle datos al home_page si quieres:
-                    home_page(page)
+                    #home_page(page) 
+                    home_page(page, usuario)
                 elif usuario["rol"] == "admin":
                     page.clean()
                    

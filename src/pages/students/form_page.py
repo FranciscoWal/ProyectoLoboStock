@@ -2,14 +2,24 @@ import flet as ft
 from database.db_manager import insertar_solicitud, verificar_adeudo, buscar_materiales, restar_material, obtener_almacen_por_material
 
 
-def formulario(page, career):
+def formulario(page, career,usuario):
     page.title = "Solicitud de Material"
 
     
-    nombre = ft.TextField(label="Nombre completo", width=300)
-    expediente = ft.TextField(label="Número de expediente", width=300)
-    carrera = ft.TextField(label="Carrera", width=300)
-    laboratorio = ft.TextField(label="Laboratorio (ej. Lab. Química, Electrónica...)", width=300)
+    nombre = ft.TextField(label="Nombre completo", width=300, value=usuario["username"], read_only=True)
+    expediente = ft.TextField(label="Número de expediente", width=300, value=usuario["expediente"], read_only=True)
+    carrera = ft.TextField(label="Carrera", width=300, value=usuario["carrera"], read_only=True)
+    laboratorio = ft.Dropdown(
+    label="Laboratorio (ej. Lab. Química, Electrónica...)",
+    width=300,
+    options=[
+        ft.dropdown.Option("Lab. Química"),
+        ft.dropdown.Option("Lab. Redes"),  
+        ft.dropdown.Option("Lab. Mecatroníca"), 
+        ft.dropdown.Option("Lab. Albañiles"), 
+    ]
+)
+
 
     # Campo Material con autocompletado
     material_input = ft.TextField(label="Material requerido", width=300)
@@ -96,10 +106,8 @@ def formulario(page, career):
             mensaje.value = "Solicitud enviada correctamente."
             mensaje.color = ft.Colors.GREEN
 
-            # Limpiar campos
-            nombre.value = ""
-            expediente.value = ""
-            carrera.value = ""
+            
+             # Limpiar campos
             material_input.value = ""
             laboratorio.value = ""
             hora_inicio_field.value = ""
@@ -112,7 +120,7 @@ def formulario(page, career):
     def regresar(e):
         from .home_page import home_page
         page.clean()
-        home_page(page)
+        home_page(page, usuario)
 
     # Estructura visual
     page.add(

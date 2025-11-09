@@ -2,12 +2,12 @@ import flet as ft
 from .form_page import formulario
 
 
-def home_page(page: ft.Page):
+def home_page(page: ft.Page, usuario):
 
     
-    def abrir_formulario(career):
+    def abrir_formulario(career, usuario):
         page.clean()
-        formulario(page, career)
+        formulario(page, career, usuario)
 
     
     def salir(e):
@@ -37,7 +37,7 @@ def home_page(page: ft.Page):
                 ], alignment=ft.MainAxisAlignment.CENTER,
                    horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 padding=20,
-                on_click=lambda e, c=career: abrir_formulario(c)
+                on_click=lambda e, c=career: abrir_formulario(c,usuario)
             ),
             width=200,
             height=150
