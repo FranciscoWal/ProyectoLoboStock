@@ -1,5 +1,5 @@
 import flet as ft
-from database.db_manager import insertar_solicitud, verificar_adeudo, buscar_materiales, restar_material
+from database.db_manager import insertar_solicitud, verificar_adeudo, buscar_materiales, restar_material, obtener_almacen_por_material
 
 
 def formulario(page, career):
@@ -78,15 +78,17 @@ def formulario(page, career):
             mensaje.color = ft.Colors.RED
 
         else:
+            almacen_destino = obtener_almacen_por_material(material_input.value)
             insertar_solicitud(
-                nombre.value,
-                expediente.value,
-                carrera.value,
-                material_input.value,
-                laboratorio.value,
-                hora_inicio_field.value,
-                hora_entrega_field.value
-            )
+            nombre.value,
+            expediente.value,
+            carrera.value,
+            material_input.value,
+            laboratorio.value,
+            hora_inicio_field.value,
+            hora_entrega_field.value,
+            almacen_destino
+        )
 
             # Restar una unidad del material en inventario
             restar_material(material_input.value)

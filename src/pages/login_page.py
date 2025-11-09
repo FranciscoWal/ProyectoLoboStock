@@ -117,8 +117,8 @@ def login_page(page: ft.Page):
                     home_page(page)
                 elif usuario["rol"] == "admin":
                     page.clean()
-                    admin_page(page)
-                    #admin_page(page, usuario["carrera"])
+                   
+                    admin_page(page, usuario["carrera"])
                 else:
                     mensaje.value = "Rol desconocido. Contacta al administrador."
                     page.update()

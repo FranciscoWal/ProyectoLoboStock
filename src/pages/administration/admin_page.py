@@ -2,24 +2,26 @@ import flet as ft
 from .solicitudes_page import solicitudes_page
 from .inventario_page import inventario_page
 
-def admin_page(page: ft.Page):
-    page.title = "Panel de Administración"
+# 🔹 Ahora recibe también la carrera del administrador
+def admin_page(page: ft.Page, carrera_admin: str):
+    page.title = f"Panel de Administración — {carrera_admin}"
 
+    # 🔹 Estas funciones ahora pasan la carrera al abrir cada subpágina
     def abrir_solicitudes(e):
         page.clean()
-        solicitudes_page(page)
+        solicitudes_page(page, carrera_admin)
 
     def abrir_inventario(e):
         page.clean()
-        inventario_page(page)
+        inventario_page(page, carrera_admin)
 
-    # para luego agregar mas 
+    # 🔹 Lista de secciones
     secciones = [
         ("Solicitudes", ft.Icons.DESCRIPTION, abrir_solicitudes),
-        ("Inventario", ft.Icons.COMPUTER, abrir_inventario) 
-       
+        ("Inventario", ft.Icons.COMPUTER, abrir_inventario)
     ]
 
+    # 🔹 Genera los botones tipo tarjeta
     cards = []
     for titulo, icono, funcion in secciones:
         card = ft.Card(
@@ -38,14 +40,16 @@ def admin_page(page: ft.Page):
         )
         cards.append(card)
 
+    # 🔹 Botón para cerrar sesión
     def salir(e):
         from src.pages.login_page import login_page
         page.clean()
         login_page(page)
 
+    # 🔹 Estructura visual
     page.add(
         ft.Column([
-            ft.Text("Panel de Administración", size=30, weight=ft.FontWeight.BOLD),
+            ft.Text(f"Panel de Administración ({carrera_admin})", size=30, weight=ft.FontWeight.BOLD),
             ft.Row(cards, alignment=ft.MainAxisAlignment.CENTER, spacing=20, wrap=True),
             ft.OutlinedButton("Cerrar sesión", on_click=salir)
         ],

@@ -19,7 +19,8 @@ def init_db():
         hora_inicio TEXT,
         hora_entrega TEXT,
         fecha TEXT DEFAULT CURRENT_TIMESTAMP,
-        estado TEXT DEFAULT 'Pendiente'
+        estado TEXT DEFAULT 'Pendiente',
+        almacen_destino TEXT
     );
     """)
 
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS administradores (
     CREATE TABLE IF NOT EXISTS inventario (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre_material TEXT UNIQUE,
+        almacen TEXT,
         cantidad_total INTEGER DEFAULT 0,
         cantidad_en_uso INTEGER DEFAULT 0,
         cantidad_disponible INTEGER DEFAULT 0
@@ -59,16 +61,27 @@ CREATE TABLE IF NOT EXISTS administradores (
     insertar_usuario_default(cursor, "diego", "123", "2022143039","Tecnologías de la Información", 0)
     insertar_usuario_default(cursor, "Brenda", "123", "2022143040","Química", 0)
     insertar_usuario_default(cursor, "Pamela", "123", "2022143050","Mecatrónica", 0)
-    insertar_usuario_default(cursor, "Angel", "123", "2022143039","Farmacéutica", 0)
+    insertar_usuario_default(cursor, "Angel", "123", "2022143060","Farmacéutica", 0)
     #Admins
     insertar_admin_default(cursor, "Pamela", "123", "Química")
     insertar_admin_default(cursor, "Angel", "123", "Mecatrónica")
-    insertar_admin_default(cursor, "Brenda", "123", "Tecnologías de la Información")
     insertar_admin_default(cursor, "Diego", "123", "Farmacéutica")
 
-    
+    insertar_material_default(cursor, "Matraz Erlenmeyer 250ml", "Química", 15)
+    insertar_material_default(cursor, "Arduino", "Mecatrónica", 15)
     conn.commit()
     conn.close()
+
+def insertar_material_default(cursor, nombre_material, almacen, cantidad_total):
+    """Inserta material por defecto si no existe"""
+    try:
+        cursor.execute("""
+            INSERT INTO inventario (nombre_material, almacen, cantidad_total, cantidad_disponible)
+            VALUES (?, ?, ?, ?)
+        """, (nombre_material, almacen, cantidad_total, cantidad_total))
+        print(f"Material {nombre_material} agregado correctamente al almacén {almacen}")
+    except sqlite3.IntegrityError:
+        print(f"Material {nombre_material} ya existe")
 
 def insertar_usuario_default(cursor, username, password, expediente, carrera, adeudo):
     """Inserta usuario por defecto si no existe"""
@@ -88,15 +101,17 @@ def insertar_admin_default(cursor, username, password,carrera,):
     except sqlite3.IntegrityError:
         print(f"Admin {username} ya existe")
 
-def insertar_solicitud(nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega):
+
+def insertar_solicitud(nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega, almacen_destino):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO solicitudes (nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega))
+        INSERT INTO solicitudes (nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega, almacen_destino)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega, almacen_destino))
     conn.commit()
     conn.close()
+
 
 def agregar_usuario(username, password, expediente, carrera, adeudo=0):
     conn = sqlite3.connect(DB_PATH)
@@ -205,3 +220,12 @@ def devolver_material(nombre_material, cantidad=1):
     """, (cantidad, cantidad, nombre_material))
     conn.commit()
     conn.close()
+
+
+def obtener_almacen_por_material(material):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT almacen FROM inventario WHERE nombre_material = ?", (material,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else "Desconocido"

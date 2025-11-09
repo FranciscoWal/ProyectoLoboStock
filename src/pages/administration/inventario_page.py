@@ -3,25 +3,26 @@ import sqlite3
 from database.db_manager import DB_PATH
 
 
-def inventario_page(page: ft.Page):
+def inventario_page(page: ft.Page, almacen_admin: str):
     page.title = "Inventario — Panel de Administración"
     
    
   
    
-    def obtener_inventario():
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, nombre_material, cantidad_total, cantidad_en_uso, 
-                   cantidad_total - cantidad_en_uso AS cantidad_disponible 
-            FROM inventario
-        """)
-        data = cursor.fetchall()
-        conn.close()
-        return data
+    def obtener_inventario(almacen_admin):
+     conn = sqlite3.connect(DB_PATH)
+     cursor = conn.cursor()
+     cursor.execute("""
+        SELECT id, nombre_material, cantidad_total, cantidad_en_uso, 
+               cantidad_total - cantidad_en_uso AS cantidad_disponible 
+        FROM inventario
+        WHERE almacen = ?
+    """, (almacen_admin,))
+     data = cursor.fetchall()
+     conn.close()
+     return data
 
-    def guardar_material(nombre, total, en_uso, id_=None):
+    def guardar_material(nombre, total, en_uso, almacen, id_=None):
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         disponible = total - en_uso
@@ -30,13 +31,13 @@ def inventario_page(page: ft.Page):
             cursor.execute("""
                 UPDATE inventario 
                 SET nombre_material=?, cantidad_total=?, cantidad_en_uso=?, cantidad_disponible=?
-                WHERE id=?
-            """, (nombre, total, en_uso, disponible, id_))
+                WHERE id=? AND almacen?
+            """, (nombre, total, en_uso, disponible, id_, almacen))
         else:
             cursor.execute("""
-                INSERT INTO inventario (nombre_material, cantidad_total, cantidad_en_uso, cantidad_disponible)
-                VALUES (?, ?, ?, ?)
-            """, (nombre, total, en_uso, disponible))
+                INSERT INTO inventario (nombre_material, almacen, cantidad_total, cantidad_en_uso, cantidad_disponible)
+                VALUES (?, ?, ?, ?, ?)
+            """, (nombre, almacen, total, en_uso, disponible))
         
         conn.commit()
         conn.close()
@@ -99,7 +100,7 @@ def inventario_page(page: ft.Page):
                     guardar_material(nombre_field.value.strip(), total, en_uso, material[0])
                     mostrar_mensaje("Material actualizado", False)
                 else:
-                    guardar_material(nombre_field.value.strip(), total, en_uso)
+                    guardar_material(nombre_field.value.strip(), total, en_uso, almacen_admin)
                     mostrar_mensaje("Material agregado", False)
                     
             except ValueError:
@@ -170,12 +171,12 @@ def inventario_page(page: ft.Page):
     def regresar(e):
         from src.pages.administration.admin_page import admin_page
         page.clean()
-        admin_page(page)
+        admin_page(page,almacen_admin)
 
    
    
 
-    inventario = obtener_inventario()
+    inventario = obtener_inventario(almacen_admin)
     
     
     filas_tabla = []
