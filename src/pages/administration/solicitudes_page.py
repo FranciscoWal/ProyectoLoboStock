@@ -50,7 +50,7 @@ def solicitudes_page(page: ft.Page, almacen_admin: str):
    
     def actualizar_vista():
         page.clean()
-        solicitudes_page(page)
+        solicitudes_page(page, almacen_admin)
 
 
     def asignar_adeudo_click(e, expediente, nombre):

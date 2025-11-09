@@ -59,14 +59,14 @@ CREATE TABLE IF NOT EXISTS administradores (
     """)
     # Usuarios
     insertar_usuario_default(cursor, "diego", "123", "2022143039","Tecnologías de la Información", 0)
-    insertar_usuario_default(cursor, "Brenda", "123", "2022143040","Química", 0)
-    insertar_usuario_default(cursor, "Pamela", "123", "2022143050","Mecatrónica", 0)
-    insertar_usuario_default(cursor, "Angel", "123", "2022143060","Farmacéutica", 0)
+    insertar_usuario_default(cursor, "brenda", "123", "2022143040","Química", 0)
+    insertar_usuario_default(cursor, "pamela", "123", "2022143050","Mecatrónica", 0)
+    insertar_usuario_default(cursor, "angel", "123", "2022143060","Farmacéutica", 0)
     #Admins
     insertar_admin_default(cursor, "Pamela", "123", "Química")
     insertar_admin_default(cursor, "Angel", "123", "Mecatrónica")
     insertar_admin_default(cursor, "Diego", "123", "Farmacéutica")
-
+    #Materiales
     insertar_material_default(cursor, "Matraz Erlenmeyer 250ml", "Química", 15)
     insertar_material_default(cursor, "Arduino", "Mecatrónica", 15)
     conn.commit()
