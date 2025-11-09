@@ -24,15 +24,27 @@ def init_db():
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT,
-        rol TEXT CHECK(rol IN ('estudiante', 'admin')),
-        expediente TEXT UNIQUE,
-        adeudo INTEGER DEFAULT 0  -- 0 = sin adeudo, 1 = tiene adeudo
-    );
-    """)
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    expediente TEXT UNIQUE NOT NULL,
+    carrera TEXT NOT NULL,
+    adeudo INTEGER DEFAULT 0  -- 0 = sin adeudo, 1 = con adeudo
+);
+""")
+
+
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS administradores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    carrera TEXT NOT NULL  -- Almacén o laboratorio que administra
+   
+);
+""")
+
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS inventario (
@@ -43,21 +55,38 @@ def init_db():
         cantidad_disponible INTEGER DEFAULT 0
     );
     """)
-    #  por defecto
-    insertar_usuario_default(cursor, "diego", "123", "estudiante", "2022143039", 0)
-    insertar_usuario_default(cursor, "dani", "123", "admin", "admin001", 0)
+    # Usuarios
+    insertar_usuario_default(cursor, "diego", "123", "2022143039","Tecnologías de la Información", 0)
+    insertar_usuario_default(cursor, "Brenda", "123", "2022143040","Química", 0)
+    insertar_usuario_default(cursor, "Pamela", "123", "2022143050","Mecatrónica", 0)
+    insertar_usuario_default(cursor, "Angel", "123", "2022143039","Farmacéutica", 0)
+    #Admins
+    insertar_admin_default(cursor, "Pamela", "123", "Química")
+    insertar_admin_default(cursor, "Angel", "123", "Mecatrónica")
+    insertar_admin_default(cursor, "Brenda", "123", "Tecnologías de la Información")
+    insertar_admin_default(cursor, "Diego", "123", "Farmacéutica")
+
     
     conn.commit()
     conn.close()
 
-def insertar_usuario_default(cursor, username, password, rol, expediente, adeudo):
+def insertar_usuario_default(cursor, username, password, expediente, carrera, adeudo):
     """Inserta usuario por defecto si no existe"""
     try:
-        cursor.execute("INSERT INTO usuarios (username, password, rol, expediente, adeudo) VALUES (?, ?, ?, ?, ?)",
-                      (username, password, rol, expediente, adeudo))
+        cursor.execute("INSERT INTO usuarios (username, password, expediente, carrera, adeudo) VALUES (?, ?, ?, ?, ?)",
+                      (username, password, expediente, carrera, adeudo))
         print(f"Usuario {username} agregado correctamente")
     except sqlite3.IntegrityError:
         print(f"Usuario {username} ya existe")
+
+def insertar_admin_default(cursor, username, password,carrera,):
+    """Inserta usuario por defecto si no existe"""
+    try:
+        cursor.execute("INSERT INTO administradores (username, password, carrera) VALUES (?, ?, ?)",
+                      (username, password, carrera,))
+        print(f"Admin {username} agregado correctamente")
+    except sqlite3.IntegrityError:
+        print(f"Admin {username} ya existe")
 
 def insertar_solicitud(nombre, expediente, carrera, material, laboratorio, hora_inicio, hora_entrega):
     conn = sqlite3.connect(DB_PATH)
@@ -69,12 +98,12 @@ def insertar_solicitud(nombre, expediente, carrera, material, laboratorio, hora_
     conn.commit()
     conn.close()
 
-def agregar_usuario(username, password, rol, expediente, adeudo=0):
+def agregar_usuario(username, password, expediente, carrera, adeudo=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO usuarios (username, password, rol, expediente, adeudo) VALUES (?, ?, ?, ?, ?)",
-                      (username, password, rol, expediente, adeudo))
+        cursor.execute("INSERT INTO usuarios (username, password, expediente, carrera, adeudo) VALUES (?, ?, ?, ?, ?)",
+                      (username, password, expediente, carrera, adeudo))
         conn.commit()
         print("Usuario agregado correctamente")
     except sqlite3.IntegrityError:
@@ -82,15 +111,28 @@ def agregar_usuario(username, password, rol, expediente, adeudo=0):
     finally:
         conn.close()
 
-def validar_usuario(username, password):
+# --- VALIDAR LOGIN ---
+def validar_usuario(username, password, rol):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT rol FROM usuarios WHERE username=? AND password=?", (username, password))
-    result = cursor.fetchone()
-    conn.close()
-    if result:
-        return result[0]  
-    return None
+
+    if rol == "admin":
+        cursor.execute("SELECT carrera FROM administradores WHERE username=? AND password=?", (username, password))
+        admin = cursor.fetchone()
+        conn.close()
+        if admin:
+            return {"rol": "admin", "carrera": admin[0]}
+        else:
+            return None
+
+    elif rol == "estudiante":
+        cursor.execute("SELECT expediente, carrera FROM usuarios WHERE username=? AND password=?", (username, password))
+        user = cursor.fetchone()
+        conn.close()
+        if user:
+            return {"rol": "usuario", "expediente": user[0], "carrera": user[1]}
+        else:
+            return None
 
 def verificar_adeudo(expediente):
     conn = sqlite3.connect(DB_PATH)
