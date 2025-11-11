@@ -1,7 +1,7 @@
 import datetime
 import flet as ft
-from src.pages.home_page import home_page
-from src.pages.admin_page import admin_page
+from src.pages.students.home_page import home_page
+from src.pages.administration.admin_page import admin_page
 from database.db_manager import validar_usuario
 
 
@@ -102,23 +102,34 @@ def login_page(page: ft.Page):
         username.error_text = None if username.value.strip() else "Ingresa tu usuario"
         password.error_text = None if password.value.strip() else "Ingresa tu contraseña"
         page.update()
+
         if username.error_text or password.error_text:
             return
 
         set_loading(True)
         try:
-            rol = validar_usuario(username.value, password.value)  # NO CAMBIADO
-            if rol == "estudiante":
-                page.clean()
-                home_page(page)    # NO CAMBIADO
-            elif rol == "admin":
-                page.clean()
-                admin_page(page)   # NO CAMBIADO
+            usuario = validar_usuario(username.value, password.value, rol_dropdown.value)
+
+            if usuario:
+                if usuario["rol"] == "usuario":
+                    page.clean()
+                    # puedes pasarle datos al home_page si quieres:
+                    #home_page(page) 
+                    home_page(page, usuario)
+                elif usuario["rol"] == "admin":
+                    page.clean()
+                   
+                    admin_page(page, usuario["carrera"])
+                else:
+                    mensaje.value = "Rol desconocido. Contacta al administrador."
+                    page.update()
             else:
                 mensaje.value = "Usuario o contraseña incorrectos"
                 page.update()
+
         finally:
             set_loading(False)
+
 
     iniciar_btn = ft.ElevatedButton(
         content=ft.Row([ft.Icon(ft.Icons.LOGIN), ft.Text(" Iniciar sesión")],

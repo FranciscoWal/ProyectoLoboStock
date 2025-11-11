@@ -3,8 +3,8 @@ import sqlite3
 from functools import partial
 from database.db_manager import DB_PATH, asignar_adeudo, quitar_adeudo, obtener_estado_adeudo, devolver_material 
 
-def solicitudes_page(page: ft.Page):
-    page.title = "Solicitudes — Panel de Administración"
+def solicitudes_page(page: ft.Page, almacen_admin: str):
+    page.title = f"Solicitudes — Panel de Administración ({almacen_admin})"
 
   
     def obtener_solicitudes():
@@ -15,8 +15,9 @@ def solicitudes_page(page: ft.Page):
                 id, nombre, expediente, carrera, material, laboratorio, 
                 hora_inicio, hora_entrega, fecha, estado
             FROM solicitudes
+            WHERE almacen_destino = ?   -- filtrado por almacén del admin
             ORDER BY fecha DESC
-        """)
+        """, (almacen_admin,))
         data = cursor.fetchall()
         conn.close()
         return data
@@ -49,7 +50,7 @@ def solicitudes_page(page: ft.Page):
    
     def actualizar_vista():
         page.clean()
-        solicitudes_page(page)
+        solicitudes_page(page, almacen_admin)
 
 
     def asignar_adeudo_click(e, expediente, nombre):
@@ -66,9 +67,9 @@ def solicitudes_page(page: ft.Page):
 
     
     def regresar(e):
-        from src.pages.admin_page import admin_page
+        from src.pages.administration.admin_page import admin_page
         page.clean()
-        admin_page(page)
+        admin_page(page, almacen_admin)
 
     solicitudes = obtener_solicitudes()
     lista = []
