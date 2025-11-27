@@ -1,3 +1,4 @@
+#src/pages/students/home_page.py
 import flet as ft
 from .form_page import formulario
 
@@ -22,7 +23,7 @@ def home_page(page: ft.Page, usuario):
     career = [
         ("Química", ft.Icons.SCIENCE),
         ("Mecatrónica", ft.Icons.MISCELLANEOUS_SERVICES),
-        ("Tecnologías de la Información", ft.Icons.COMPUTER),
+        #("Tecnologías de la Información", ft.Icons.COMPUTER),
         ("Farmacéutica", ft.Icons.BIOTECH)
     ]
 

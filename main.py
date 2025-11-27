@@ -1,3 +1,4 @@
+#main.py
 import flet as ft
 from database.db_manager import init_db
 from src.pages.login_page import login_page

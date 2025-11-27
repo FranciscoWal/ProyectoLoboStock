@@ -1,35 +1,48 @@
+#src/pages/students/form_page.py
 import flet as ft
-from database.db_manager import insertar_solicitud, verificar_adeudo, buscar_materiales, restar_material, obtener_almacen_por_material
+from database.db_manager import (
+    insertar_solicitud,
+    verificar_adeudo,
+    buscar_materiales,
+    restar_material,
+    obtener_almacen_por_material
+)
 
-
-def formulario(page, career,usuario):
+def formulario(page, career, usuario):
     page.title = "Solicitud de Material"
 
-    
+    # Datos del usuario
     nombre = ft.TextField(label="Nombre completo", width=300, value=usuario["username"], read_only=True)
     expediente = ft.TextField(label="Número de expediente", width=300, value=usuario["expediente"], read_only=True)
     carrera = ft.TextField(label="Carrera", width=300, value=usuario["carrera"], read_only=True)
+
+    # Laboratorio
     laboratorio = ft.Dropdown(
-    label="Laboratorio (ej. Lab. Química, Electrónica...)",
-    width=300,
-    options=[
-        ft.dropdown.Option("Lab. Química"),
-        ft.dropdown.Option("Lab. Redes"),  
-        ft.dropdown.Option("Lab. Mecatroníca"), 
-        ft.dropdown.Option("Lab. Albañiles"), 
-    ]
-)
+        label="Laboratorio",
+        width=300,
+        options=[
+            ft.dropdown.Option("Lab. Química"),
+            ft.dropdown.Option("Lab. Redes"),
+            ft.dropdown.Option("Lab. Mecatroníca"),
+            ft.dropdown.Option("Lab. Albañiles"),
+        ]
+    )
+
+    # -------------------------
+    # MATERIALES MÚLTIPLES
+    # -------------------------
+    materiales_list = []  # Guarda dicts {"material": x, "cantidad": y}
+    lista_visual = ft.Column()
 
 
-    # Campo Material con autocompletado
     material_input = ft.TextField(label="Material requerido", width=300)
+    cantidad_input = ft.TextField(label="Cantidad", width=120, keyboard_type=ft.KeyboardType.NUMBER)
     sugerencias = ft.Column(spacing=0)
 
     def actualizar_sugerencias(e):
         sugerencias.controls.clear()
         if material_input.value.strip():
-            materiales = buscar_materiales(material_input.value.strip())
-            for mat in materiales:
+            for mat in buscar_materiales(material_input.value.strip()):
                 sugerencias.controls.append(
                     ft.ListTile(
                         title=ft.Text(mat),
@@ -38,14 +51,62 @@ def formulario(page, career,usuario):
                 )
         page.update()
 
-    def seleccionar_material(nombre_material):
-        material_input.value = nombre_material
+    def seleccionar_material(nombre_mat):
+        material_input.value = nombre_mat
         sugerencias.controls.clear()
         page.update()
 
     material_input.on_change = actualizar_sugerencias
 
-  
+    def agregar_material(e):
+        nombre_mat = material_input.value.strip()
+
+        try:
+            cantidad = int(cantidad_input.value)
+        except:
+            cantidad = 0
+
+        if not nombre_mat or cantidad <= 0:
+            return
+
+        materiales_list.append({"material": nombre_mat, "cantidad": cantidad})
+
+        # Mostrar visualmente
+        lista_visual.controls.append(
+            ft.Row([
+                ft.Text(f"{nombre_mat} — {cantidad} unidades"),
+                ft.IconButton(
+                    icon=ft.Icons.DELETE,
+                    on_click=lambda ev, m=nombre_mat: eliminar_material(m)
+                )
+            ])
+        )
+
+        material_input.value = ""
+        cantidad_input.value = ""
+        sugerencias.controls.clear()
+        page.update()
+
+    def eliminar_material(material_nombre):
+        nonlocal materiales_list
+        materiales_list = [m for m in materiales_list if m["material"] != material_nombre]
+
+        lista_visual.controls.clear()
+        for m in materiales_list:
+            lista_visual.controls.append(
+                ft.Row([
+                    ft.Text(f"{m['material']} — {m['cantidad']} unidades"),
+                    ft.IconButton(
+                        icon=ft.Icons.DELETE,
+                        on_click=lambda ev, mat=m['material']: eliminar_material(mat)
+                    )
+                ])
+            )
+        page.update()
+
+    # -------------------------
+    # HORARIOS
+    # -------------------------
     hora_inicio_picker = ft.TimePicker()
     hora_entrega_picker = ft.TimePicker()
     hora_inicio_field = ft.TextField(label="Hora de inicio", read_only=True, width=300)
@@ -70,95 +131,129 @@ def formulario(page, career,usuario):
     hora_inicio_picker.on_change = set_hora_inicio
     hora_entrega_picker.on_change = set_hora_entrega
 
-    # Mensaje inferior
+    # -------------------------
+    # ENVIAR SOLICITUD
+    # -------------------------
     mensaje = ft.Text("", color=ft.Colors.GREEN)
 
-    # Función de envío
+
     def enviar(e):
-        if not nombre.value or not expediente.value or not carrera.value or not material_input.value or not laboratorio.value:
-            mensaje.value = "Por favor completa todos los campos."
-            mensaje.color = ft.Colors.RED
-
-        elif not hora_inicio_field.value or not hora_entrega_field.value:
-            mensaje.value = "Debes seleccionar la hora de inicio y la hora de entrega."
-            mensaje.color = ft.Colors.RED
-
-        elif verificar_adeudo(expediente.value):
+        if verificar_adeudo(expediente.value):
             mensaje.value = "No puedes enviar solicitudes. Tienes un adeudo pendiente."
             mensaje.color = ft.Colors.RED
+            page.update()
+            return
 
-        else:
-            almacen_destino = obtener_almacen_por_material(material_input.value)
-            insertar_solicitud(
+        if len(materiales_list) == 0:
+            mensaje.value = "Debes agregar al menos un material."
+            mensaje.color = ft.Colors.RED
+            page.update()
+            return
+
+        # Crear un solo string con todos los materiales
+        materiales_unificados = "\n".join(
+            f"{m['material']} (x{m['cantidad']})"
+            for m in materiales_list
+        )
+
+        # Obtener almacén por el primer material (o puedes cambiar regla)
+        almacen_destino = obtener_almacen_por_material(materiales_list[0]["material"])
+
+        # ✔ INSERTAR UNA SOLA SOLICITUD
+        insertar_solicitud(
             nombre.value,
             expediente.value,
             carrera.value,
-            material_input.value,
+            materiales_unificados,
             laboratorio.value,
             hora_inicio_field.value,
             hora_entrega_field.value,
             almacen_destino
         )
 
-            # Restar una unidad del material en inventario
-            restar_material(material_input.value)
+        # Restar inventario según cantidad
+        for m in materiales_list:
+            for _ in range(m["cantidad"]):
+                restar_material(m["material"])
 
-            mensaje.value = "Solicitud enviada correctamente."
-            mensaje.color = ft.Colors.GREEN
+        mensaje.value = "Solicitud enviada correctamente."
+        mensaje.color = ft.Colors.GREEN
 
-            
-             # Limpiar campos
-            material_input.value = ""
-            laboratorio.value = ""
-            hora_inicio_field.value = ""
-            hora_entrega_field.value = ""
-            sugerencias.controls.clear()
-
+        # Reset
+        materiales_list.clear()
+        lista_visual.controls.clear()
+        material_input.value = ""
+        cantidad_input.value = ""
+        laboratorio.value = ""
+        hora_inicio_field.value = ""
+        hora_entrega_field.value = ""
         page.update()
 
-    
     def regresar(e):
         from .home_page import home_page
         page.clean()
         home_page(page, usuario)
 
-    # Estructura visual
+    # -------------------------
+    # INTERFAZ
+    # -------------------------
     page.add(
         hora_inicio_picker,
         hora_entrega_picker,
+
         ft.Column([
             ft.Text(f"Solicitud de Material — {career}", size=25, weight="bold"),
-            nombre,
-            expediente,
-            carrera,
 
+
+            # SECCIÓN 1
             ft.Container(
-                content=ft.Column([
-                    material_input,
-                    sugerencias
-                ], spacing=0),
-                width=300
+                ft.Column([ft.Text("Datos del solicitante", size=20, weight="bold"), nombre, expediente, carrera]),
+                width=350, padding=15,
+                bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.BLUE),
+                border_radius=10
             ),
 
-            laboratorio,
+            # SECCIÓN 2
+            ft.Container(
+                ft.Column([
+                    ft.Text("Detalles de la solicitud", size=20, weight="bold"),
+                    laboratorio,
+                    ft.Row([ft.Container(content=hora_inicio_field, width=260), ft.IconButton(icon=ft.Icons.ACCESS_TIME, on_click=abrir_hora_inicio)], alignment="center"),
+                    ft.Row([ft.Container(content=hora_entrega_field, width=260), ft.IconButton(icon=ft.Icons.ACCESS_TIME, on_click=abrir_hora_entrega)], alignment="center"),
+                ]),
+                width=350, padding=15,
+                bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.GREEN),
+                border_radius=10
+            ),
 
-            ft.Row([
-                ft.Container(content=hora_inicio_field, width=300),
-                ft.IconButton(icon=ft.Icons.ACCESS_TIME, tooltip="Seleccionar hora de inicio", on_click=abrir_hora_inicio)
-            ], alignment="center"),
+            # SECCIÓN 3
+            ft.Container(
+                ft.Column([
+                    ft.Text("Material requerido", size=20, weight="bold"),
 
-            ft.Row([
-                ft.Container(content=hora_entrega_field, width=300),
-                ft.IconButton(icon=ft.Icons.ACCESS_TIME, tooltip="Seleccionar hora de entrega", on_click=abrir_hora_entrega)
-            ], alignment="center"),
+                    ft.Row([
+                        ft.Container(content=material_input, width=200),
+                        ft.Container(content=cantidad_input, width=80),
+                        ft.IconButton(icon=ft.Icons.ADD_CIRCLE, icon_size=30, on_click=agregar_material)
+                    ], alignment="center"),
 
+                    sugerencias,
+                    ft.Text("Materiales añadidos:", size=18, weight="bold"),
+
+                    ft.Container(content=lista_visual, width=320, padding=5, border_radius=10,
+                                 bgcolor=ft.Colors.with_opacity(0.03, ft.Colors.BLACK))
+                ]),
+                width=350, padding=15,
+                bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.ORANGE),
+                border_radius=10
+            ),
+
+            # BOTONES
             ft.Row([
                 ft.ElevatedButton("Enviar", on_click=enviar),
                 ft.OutlinedButton("Regresar", on_click=regresar)
             ], alignment="center"),
 
             mensaje
-        ],
-        horizontal_alignment="center",
-        spacing=15)
+        ], horizontal_alignment="center")
     )

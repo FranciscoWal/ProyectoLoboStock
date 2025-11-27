@@ -1,3 +1,4 @@
+#src/pages/adminitration/solicitudes_page.py
 import flet as ft
 import sqlite3
 from functools import partial
