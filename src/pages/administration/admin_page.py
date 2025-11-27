@@ -18,7 +18,9 @@ def admin_page(page: ft.Page, carrera_admin: str):
     # 🔹 Lista de secciones
     secciones = [
         ("Solicitudes", ft.Icons.DESCRIPTION, abrir_solicitudes),
-        ("Inventario", ft.Icons.COMPUTER, abrir_inventario)
+        ("Inventario", ft.Icons.COMPUTER, abrir_inventario),
+        ("Estadisticas", ft.Icons.STACKED_BAR_CHART, abrir_inventario)
+        
     ]
 
     # 🔹 Genera los botones tipo tarjeta
