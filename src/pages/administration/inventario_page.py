@@ -1,3 +1,4 @@
+#src/pages/adminitration/inventario_page.py
 import flet as ft
 import sqlite3
 from database.db_manager import DB_PATH

@@ -1,7 +1,8 @@
+#src/pages/adminitration/admin_page.py
 import flet as ft
 from .solicitudes_page import solicitudes_page
 from .inventario_page import inventario_page
-
+from .estadisticas_page import estadisticas_page
 # 🔹 Ahora recibe también la carrera del administrador
 def admin_page(page: ft.Page, carrera_admin: str):
     page.title = f"Panel de Administración — {carrera_admin}"
@@ -15,11 +16,15 @@ def admin_page(page: ft.Page, carrera_admin: str):
         page.clean()
         inventario_page(page, carrera_admin)
 
+    def abrir_estadisticas(e):
+        page.clean()
+        estadisticas_page(page, carrera_admin)
+
     # 🔹 Lista de secciones
     secciones = [
         ("Solicitudes", ft.Icons.DESCRIPTION, abrir_solicitudes),
         ("Inventario", ft.Icons.COMPUTER, abrir_inventario),
-        ("Estadisticas", ft.Icons.STACKED_BAR_CHART, abrir_inventario)
+        ("Estadísticas", ft.Icons.STACKED_BAR_CHART, abrir_estadisticas)
         
     ]
 
