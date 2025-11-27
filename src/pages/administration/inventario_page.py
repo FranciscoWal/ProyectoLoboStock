@@ -84,7 +84,7 @@ def inventario_page(page: ft.Page, almacen_admin: str):
 
         def guardar(e):
             try:
-                # Validaciones
+              
                 if not nombre_field.value.strip():
                     mostrar_mensaje("El nombre es obligatorio")
                     return

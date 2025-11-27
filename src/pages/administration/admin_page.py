@@ -3,11 +3,11 @@ import flet as ft
 from .solicitudes_page import solicitudes_page
 from .inventario_page import inventario_page
 from .estadisticas_page import estadisticas_page
-# 🔹 Ahora recibe también la carrera del administrador
+
 def admin_page(page: ft.Page, carrera_admin: str):
     page.title = f"Panel de Administración — {carrera_admin}"
 
-    # 🔹 Estas funciones ahora pasan la carrera al abrir cada subpágina
+    
     def abrir_solicitudes(e):
         page.clean()
         solicitudes_page(page, carrera_admin)
@@ -20,7 +20,7 @@ def admin_page(page: ft.Page, carrera_admin: str):
         page.clean()
         estadisticas_page(page, carrera_admin)
 
-    # 🔹 Lista de secciones
+   
     secciones = [
         ("Solicitudes", ft.Icons.DESCRIPTION, abrir_solicitudes),
         ("Inventario", ft.Icons.COMPUTER, abrir_inventario),
@@ -28,7 +28,7 @@ def admin_page(page: ft.Page, carrera_admin: str):
         
     ]
 
-    # 🔹 Genera los botones tipo tarjeta
+    
     cards = []
     for titulo, icono, funcion in secciones:
         card = ft.Card(
@@ -47,13 +47,13 @@ def admin_page(page: ft.Page, carrera_admin: str):
         )
         cards.append(card)
 
-    # 🔹 Botón para cerrar sesión
+    
     def salir(e):
         from src.pages.login_page import login_page
         page.clean()
         login_page(page)
 
-    # 🔹 Estructura visual
+   
     page.add(
         ft.Column([
             ft.Text(f"Panel de Administración ({carrera_admin})", size=30, weight=ft.FontWeight.BOLD),
