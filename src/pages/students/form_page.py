@@ -28,10 +28,10 @@ def formulario(page, career, usuario):
         ]
     )
 
-    # -------------------------
+    
     # MATERIALES MÚLTIPLES
-    # -------------------------
-    materiales_list = []  # Guarda dicts {"material": x, "cantidad": y}
+    
+    materiales_list = []  
     lista_visual = ft.Column()
 
 
@@ -104,9 +104,7 @@ def formulario(page, career, usuario):
             )
         page.update()
 
-    # -------------------------
-    # HORARIOS
-    # -------------------------
+   
     hora_inicio_picker = ft.TimePicker()
     hora_entrega_picker = ft.TimePicker()
     hora_inicio_field = ft.TextField(label="Hora de inicio", read_only=True, width=300)
@@ -131,9 +129,7 @@ def formulario(page, career, usuario):
     hora_inicio_picker.on_change = set_hora_inicio
     hora_entrega_picker.on_change = set_hora_entrega
 
-    # -------------------------
-    # ENVIAR SOLICITUD
-    # -------------------------
+ 
     mensaje = ft.Text("", color=ft.Colors.GREEN)
 
 
@@ -156,10 +152,10 @@ def formulario(page, career, usuario):
             for m in materiales_list
         )
 
-        # Obtener almacén por el primer material (o puedes cambiar regla)
+       
         almacen_destino = obtener_almacen_por_material(materiales_list[0]["material"])
 
-        # ✔ INSERTAR UNA SOLA SOLICITUD
+       
         insertar_solicitud(
             nombre.value,
             expediente.value,
@@ -171,7 +167,7 @@ def formulario(page, career, usuario):
             almacen_destino
         )
 
-        # Restar inventario según cantidad
+        
         for m in materiales_list:
             for _ in range(m["cantidad"]):
                 restar_material(m["material"])
@@ -194,9 +190,7 @@ def formulario(page, career, usuario):
         page.clean()
         home_page(page, usuario)
 
-    # -------------------------
-    # INTERFAZ
-    # -------------------------
+   
     page.add(
         hora_inicio_picker,
         hora_entrega_picker,
@@ -213,7 +207,7 @@ def formulario(page, career, usuario):
                 border_radius=10
             ),
 
-            # SECCIÓN 2
+         
             ft.Container(
                 ft.Column([
                     ft.Text("Detalles de la solicitud", size=20, weight="bold"),
@@ -226,7 +220,7 @@ def formulario(page, career, usuario):
                 border_radius=10
             ),
 
-            # SECCIÓN 3
+            
             ft.Container(
                 ft.Column([
                     ft.Text("Material requerido", size=20, weight="bold"),
@@ -248,7 +242,7 @@ def formulario(page, career, usuario):
                 border_radius=10
             ),
 
-            # BOTONES
+            
             ft.Row([
                 ft.ElevatedButton("Enviar", on_click=enviar),
                 ft.OutlinedButton("Regresar", on_click=regresar)

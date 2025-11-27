@@ -6,13 +6,11 @@ import flet as ft
 
 from database.db_manager import DB_PATH
 
-# Expresión para detectar cantidades (x3)
+
 RE_CANTIDAD = re.compile(r"\(x\s*([0-9]+)\)", re.IGNORECASE)
 
 
-# -------------------------
-# PARSE DE MATERIALES
-# -------------------------
+
 def parse_materiales_from_rows(rows):
     totals = {}
     for text in rows:
@@ -39,9 +37,7 @@ def parse_materiales_from_rows(rows):
     return totals
 
 
-# -------------------------
-# TARJETA KPI
-# -------------------------
+
 def tarjeta_kpi(titulo, valor, icono):
     return ft.Container(
         width=260,
@@ -60,14 +56,12 @@ def tarjeta_kpi(titulo, valor, icono):
     )
 
 
-# -------------------------
-# PÁGINA PRINCIPAL
-# -------------------------
+
 def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
     page.title = f"Estadísticas — {almacen_admin}"
     page.bgcolor = "#121212"
 
-    # --- Obtener datos ---
+   
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute(
@@ -91,9 +85,7 @@ def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
     labels = [item[0] for item in top_items]
     values = [item[1] for item in top_items]
 
-    # -------------------------
-    # Ajustes del gráfico
-    # -------------------------
+    
     full_width = int(page.width or 900)
     graph_width = min(1000, max(520, full_width - 160))
     graph_height = max(340, 55 * len(values))
@@ -109,7 +101,7 @@ def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
         for i in range(len(values))
     ]
 
-    # Ejes con color negro
+    
     bottom_axis = ft.ChartAxis(
         labels=[
             ft.ChartAxisLabel(value=i, label=ft.Text(labels[i], size=12, color="black"))
@@ -124,7 +116,7 @@ def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
         ]
     )
 
-    # Gráfico limpio con grid lines negras
+  
     grafica = ft.BarChart(
     bar_groups=bar_groups,
     bottom_axis=bottom_axis,
@@ -135,11 +127,11 @@ def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
     width=graph_width,
     height=graph_height,
     groups_space=40,
-    tooltip_bgcolor="#FFFFFF"   # ✔️ fondo blanco → texto negro visible
+    tooltip_bgcolor="#FFFFFF"   
 )
 
 
-    # KPI resumen
+    
     total_solicitudes = len(filas)
     unidades_totales = sum(totals.values())
     top_mat = top_items[0] if top_items else ("-", 0)
@@ -155,7 +147,7 @@ def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
         wrap=True
     )
 
-    # Título + regresar
+    
     header = ft.Row([
         ft.Text("Estadísticas de Materiales", size=28,
                 weight=ft.FontWeight.BOLD, color="white"),
@@ -167,7 +159,7 @@ def estadisticas_page(page: ft.Page, almacen_admin: str, top_n: int = 10):
         )
     ])
 
-    # Contenedor principal
+    
     page.clean()
     page.add(
         ft.Container(
