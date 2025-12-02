@@ -1,4 +1,3 @@
-#src/pages/adminitration/inventario_page.py
 import flet as ft
 import sqlite3
 from database.db_manager import DB_PATH
@@ -6,40 +5,39 @@ from database.db_manager import DB_PATH
 
 def inventario_page(page: ft.Page, almacen_admin: str):
     page.title = "Inventario — Panel de Administración"
-    
-   
-  
-   
-    def obtener_inventario(almacen_admin):
-     conn = sqlite3.connect(DB_PATH)
-     cursor = conn.cursor()
-     cursor.execute("""
-        SELECT id, nombre_material, cantidad_total, cantidad_en_uso, 
-               cantidad_total - cantidad_en_uso AS cantidad_disponible 
-        FROM inventario
-        WHERE almacen = ?
-    """, (almacen_admin,))
-     data = cursor.fetchall()
-     conn.close()
-     return data
 
+    
+    def obtener_inventario(almacen):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, nombre_material, cantidad_total, cantidad_en_uso, 
+                   cantidad_total - cantidad_en_uso AS cantidad_disponible 
+            FROM inventario
+            WHERE almacen = ?
+        """, (almacen,))
+        data = cursor.fetchall()
+        conn.close()
+        return data
+
+   
     def guardar_material(nombre, total, en_uso, almacen, id_=None):
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         disponible = total - en_uso
-        
+
         if id_:
             cursor.execute("""
                 UPDATE inventario 
                 SET nombre_material=?, cantidad_total=?, cantidad_en_uso=?, cantidad_disponible=?
-                WHERE id=? AND almacen?
+                WHERE id=? AND almacen=?
             """, (nombre, total, en_uso, disponible, id_, almacen))
         else:
             cursor.execute("""
                 INSERT INTO inventario (nombre_material, almacen, cantidad_total, cantidad_en_uso, cantidad_disponible)
                 VALUES (?, ?, ?, ?, ?)
             """, (nombre, almacen, total, en_uso, disponible))
-        
+
         conn.commit()
         conn.close()
         actualizar_vista()
@@ -52,16 +50,14 @@ def inventario_page(page: ft.Page, almacen_admin: str):
         conn.close()
         actualizar_vista()
 
+
     def actualizar_vista():
         page.clean()
-        inventario_page(page)
+        inventario_page(page, almacen_admin)
 
-   
-    # Formularios
-   
+  
     def mostrar_formulario(material=None):
         es_edicion = material is not None
-        
 
         nombre_field = ft.TextField(
             label="Nombre del material*",
@@ -82,13 +78,13 @@ def inventario_page(page: ft.Page, almacen_admin: str):
             input_filter=ft.NumbersOnlyInputFilter()
         )
 
+        # Guardar formulario
         def guardar(e):
             try:
-              
                 if not nombre_field.value.strip():
                     mostrar_mensaje("El nombre es obligatorio")
                     return
-                    
+
                 total = int(total_field.value)
                 en_uso = int(uso_field.value) if uso_field.value.strip() else 0
 
@@ -96,28 +92,42 @@ def inventario_page(page: ft.Page, almacen_admin: str):
                     mostrar_mensaje("En uso no puede ser mayor que total")
                     return
 
-               
                 if es_edicion:
-                    guardar_material(nombre_field.value.strip(), total, en_uso, material[0])
+                    # material = (id, nombre, total, en_uso, disponible)
+                    guardar_material(
+                        nombre_field.value.strip(),  
+                        total,
+                        en_uso,
+                        almacen_admin,      # aquí estaba el error
+                        material[0]         # id
+                    )
                     mostrar_mensaje("Material actualizado", False)
                 else:
-                    guardar_material(nombre_field.value.strip(), total, en_uso, almacen_admin)
+                    guardar_material(
+                        nombre_field.value.strip(),
+                        total,
+                        en_uso,
+                        almacen_admin        # insertar almacén correcto
+                    )
                     mostrar_mensaje("Material agregado", False)
-                    
+
             except ValueError:
                 mostrar_mensaje("Las cantidades deben ser números")
 
         def cancelar(e):
             actualizar_vista()
 
-        # Crear formulario
+        # Formulario visual
         formulario = ft.Container(
             content=ft.Card(
                 content=ft.Container(
                     content=ft.Column([
                         ft.Row([
-                            ft.Text("Editar Material" if es_edicion else "Agregar Material", 
-                                   size=20, weight=ft.FontWeight.BOLD),
+                            ft.Text(
+                                "Editar Material" if es_edicion else "Agregar Material",
+                                size=20,
+                                weight=ft.FontWeight.BOLD
+                            ),
                             ft.IconButton(ft.Icons.CLOSE, on_click=cancelar)
                         ]),
                         ft.Divider(),
@@ -139,7 +149,7 @@ def inventario_page(page: ft.Page, almacen_admin: str):
             padding=50
         )
 
-        # Mostrar overlay
+        # Mostrar capa del formulario
         page.clean()
         page.add(
             ft.Stack([
@@ -147,19 +157,15 @@ def inventario_page(page: ft.Page, almacen_admin: str):
                     ft.Container(
                         content=ft.Text("Inventario", size=28, weight=ft.FontWeight.BOLD),
                         padding=20,
-                        alignment=ft.alignment.center
-                    ),
-                    ft.Container(
-                        content=ft.Text("Formulario abierto...", color=ft.Colors.GREY),
-                        padding=20,
-                        alignment=ft.alignment.center
-                    ),
+                        alignment=ft.alignment.center,
+                    )
                 ]),
                 formulario
             ], expand=True)
         )
         page.update()
 
+   
     def mostrar_mensaje(mensaje, es_error=True):
         page.snack_bar = ft.SnackBar(
             content=ft.Text(mensaje, color=ft.Colors.WHITE),
@@ -169,21 +175,18 @@ def inventario_page(page: ft.Page, almacen_admin: str):
         page.snack_bar.open = True
         page.update()
 
+   
     def regresar(e):
         from src.pages.administration.admin_page import admin_page
         page.clean()
-        admin_page(page,almacen_admin)
+        admin_page(page, almacen_admin)
 
-   
-   
-
+  
     inventario = obtener_inventario(almacen_admin)
-    
-    
+
     filas_tabla = []
-    
+
     if not inventario:
-        # Mensaje cuando no hay datos
         filas_tabla.append(
             ft.DataRow(
                 color=ft.Colors.WHITE,
@@ -200,17 +203,16 @@ def inventario_page(page: ft.Page, almacen_admin: str):
     else:
         for material in inventario:
             id_, nombre, total, en_uso, disponible = material
-            
-            # Determinar color para disponible
+
             color_disponible = ft.Colors.BLACK
             if disponible > 0:
                 color_disponible = ft.Colors.GREEN
             elif disponible < 0:
                 color_disponible = ft.Colors.RED
-            
+
             filas_tabla.append(
                 ft.DataRow(
-                    color=ft.Colors.WHITE,  
+                    color=ft.Colors.WHITE,
                     cells=[
                         ft.DataCell(ft.Text(str(id_), color=ft.Colors.BLACK)),
                         ft.DataCell(ft.Text(nombre, color=ft.Colors.BLACK)),
@@ -230,14 +232,14 @@ def inventario_page(page: ft.Page, almacen_admin: str):
                                     icon_color=ft.Colors.RED,
                                     tooltip="Eliminar",
                                     on_click=lambda e, i=id_: eliminar_material(i)
-                                ),
+                                )
                             ], spacing=5)
                         )
                     ]
                 )
             )
 
-    # Crear tabla
+ 
     tabla = ft.DataTable(
         columns=[
             ft.DataColumn(ft.Text("ID", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)),
@@ -252,42 +254,38 @@ def inventario_page(page: ft.Page, almacen_admin: str):
         border_radius=10,
         horizontal_margin=10,
         column_spacing=20,
-        heading_row_color=ft.Colors.BLUE,  
+        heading_row_color=ft.Colors.BLUE,
         heading_row_height=50,
-        data_row_color=ft.Colors.WHITE,    
+        data_row_color=ft.Colors.WHITE,
         data_row_max_height=60,
     )
 
-    
-    # Layout principal
-    
+   
     contenido = ft.Column([
         ft.Container(
             content=ft.Text("Inventario de Materiales", size=25, weight=ft.FontWeight.BOLD),
             padding=20,
             alignment=ft.alignment.center
         ),
-        
+
         ft.Container(
             content=ft.ElevatedButton(
-                "Agregar Material", 
+                "Agregar Material",
                 icon=ft.Icons.ADD,
                 on_click=lambda e: mostrar_formulario(),
                 style=ft.ButtonStyle(padding=20)
             ),
             padding=10
         ),
-        
+
         ft.Container(
-            content=ft.Column([
-                tabla
-            ], scroll=ft.ScrollMode.AUTO),
+            content=ft.Column([tabla], scroll=ft.ScrollMode.AUTO),
             padding=20
         ),
-        
+
         ft.Container(
             content=ft.OutlinedButton(
-                "Regresar al Panel", 
+                "Regresar al Panel",
                 icon=ft.Icons.ARROW_BACK,
                 on_click=regresar
             ),
